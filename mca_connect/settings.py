@@ -65,15 +65,19 @@ MIDDLEWARE = [
 ]
 
 # CORS & CSRF Configurations
-CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL', 'False').lower() in ('true', '1', 't')
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/.*\.vercel\.app$",
     r"^https:\/\/.*\.netlify\.app$",
     r"^https:\/\/.*\.onrender\.com$",
+    r"^http:\/\/localhost:\d+$",
+    r"^http:\/\/127\.0\.0\.1:\d+$",
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    'https://mca-connect-eight.vercel.app',
+    'https://mca-connect.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:3000',
@@ -90,15 +94,16 @@ if CUSTOM_FRONTEND_URL:
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://mca-connect-eight.vercel.app',
+    'https://*.vercel.app',
+    'https://*.netlify.app',
+    'https://*.onrender.com',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://*.onrender.com',
-    'https://*.vercel.app',
-    'https://*.netlify.app',
 ]
 
 if CUSTOM_FRONTEND_URL:
