@@ -292,6 +292,7 @@ def api_articles_list(request):
             'summary': a.summary,
             'content': a.content,
             'category': a.category.name if a.category else 'General',
+            'author_id': a.author.id if a.author else None,
             'author_name': a.author.get_full_name() or a.author.username if a.author else 'Community',
             'author_role': a.author.get_role_display() if a.author else '',
             'read_time': a.estimate_read_time(),
@@ -301,6 +302,15 @@ def api_articles_list(request):
             'created_at': a.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def api_article_detail_actions(request, pk):
+    art = get_object_or_404(Article, pk=pk)
+    if not request.user.is_authenticated or (request.user != art.author and request.user.role != 'ADMIN'):
+        return Response({'error': 'Unauthorized to delete this study guide.'}, status=403)
+    art.delete()
+    return Response({'success': True})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -372,6 +382,7 @@ def api_interviews_list(request):
             'summary': exp.summary,
             'questions_asked': exp.questions_asked,
             'tips_for_juniors': exp.tips_for_juniors,
+            'author_id': exp.author.id if exp.author else None,
             'author_name': exp.author.get_full_name() or exp.author.username if exp.author else 'Senior Alum',
             'author_role': exp.author.get_role_display() if exp.author else '',
             'upvotes_count': exp.upvotes.count(),
@@ -379,12 +390,18 @@ def api_interviews_list(request):
         })
     return Response(data)
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 @permission_classes([AllowAny])
-def api_interview_upvote(request, pk):
+def api_interview_detail_actions(request, pk):
+    exp = get_object_or_404(InterviewExperience, pk=pk)
+    if request.method == 'DELETE':
+        if not request.user.is_authenticated or (request.user != exp.author and request.user.role != 'ADMIN'):
+            return Response({'error': 'Unauthorized to delete this interview log.'}, status=403)
+        exp.delete()
+        return Response({'success': True})
+
     if not request.user.is_authenticated:
         return Response({'error': 'Please sign in to upvote.'}, status=401)
-    exp = get_object_or_404(InterviewExperience, pk=pk)
     if request.user in exp.upvotes.all():
         exp.upvotes.remove(request.user)
     else:
@@ -539,7 +556,9 @@ def api_mentorship_my_sessions(request):
         data.append({
             'id': b.id,
             'session_type': b.get_session_type_display(),
+            'mentor_id': b.mentor.id,
             'mentor_name': b.mentor.get_full_name() or b.mentor.username,
+            'student_id': b.student.id,
             'student_name': b.student.get_full_name() or b.student.username,
             'requested_date': b.requested_date.strftime('%b %d, %Y'),
             'requested_time': b.requested_time,
@@ -547,17 +566,54 @@ def api_mentorship_my_sessions(request):
             'status': b.status,
             'meeting_link': b.meeting_link,
             'is_mentor_view': is_mentor,
+            'created_at': b.created_at.strftime('%b %d, %Y'),
         })
     return Response({'is_mentor': is_mentor, 'sessions': data})
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 @permission_classes([AllowAny])
-def api_mentorship_session_update_status(request, pk):
-    """Mentors can confirm, set meeting link, or decline sessions."""
+def api_mentorship_remove_mentor_profile(request):
+    """Allows a user to undo/delete their mentor account/profile and revert back to MCA Student."""
+    if not request.user.is_authenticated:
+        return Response({'error': 'Unauthorized'}, status=401)
+
+    MentorProfile.objects.filter(user=request.user).delete()
+    u = request.user
+    u.role = 'STUDENT'
+    u.is_mentor_available = False
+    u.save()
+
+    return Response({
+        'success': True,
+        'message': 'Mentor profile successfully removed. Role reverted to MCA Student.',
+        'user': {
+            'id': u.id,
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'email': u.email,
+            'role': u.role,
+            'role_display': u.get_role_display(),
+            'headline': u.headline,
+            'reputation_points': u.reputation_points,
+            'avatar_url': u.get_avatar_url(),
+        }
+    })
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([AllowAny])
+def api_mentorship_session_actions(request, pk):
+    """Mentors can confirm/add meet link, students/mentors can cancel/delete."""
     if not request.user.is_authenticated:
         return Response({'error': 'Unauthorized'}, status=401)
 
     booking = get_object_or_404(MentorshipBooking, pk=pk)
+    
+    if request.method == 'DELETE':
+        if booking.student != request.user and booking.mentor != request.user and request.user.role != 'ADMIN':
+            return Response({'error': 'Unauthorized to cancel this session.'}, status=403)
+        booking.delete()
+        return Response({'success': True, 'message': 'Mentorship session cancelled and removed.'})
+
     if booking.mentor != request.user and request.user.role != 'ADMIN':
         return Response({'error': 'Only the assigned mentor can update this session.'}, status=403)
 
@@ -610,9 +666,10 @@ def api_qa_list(request):
                 'id': ans.id,
                 'content': ans.content,
                 'code_snippet': ans.code_snippet,
-                'author_name': ans.author.get_full_name() or ans.author.username,
-                'author_role': ans.author.get_role_display(),
-                'is_mentor': ans.author.role in ['ALUMNI', 'FACULTY'],
+                'author_id': ans.author.id if ans.author else None,
+                'author_name': ans.author.get_full_name() or ans.author.username if ans.author else 'Community',
+                'author_role': ans.author.get_role_display() if ans.author else '',
+                'is_mentor': ans.author.role in ['ALUMNI', 'FACULTY'] if ans.author else False,
                 'upvotes_count': ans.upvotes.count(),
                 'created_at': ans.created_at.strftime('%b %d, %Y'),
             })
@@ -623,7 +680,7 @@ def api_qa_list(request):
             'slug': q.slug,
             'content': q.content,
             'code_snippet': q.code_snippet,
-            'author_id': q.author.id,
+            'author_id': q.author.id if q.author else None,
             'author_name': q.author.get_full_name() or q.author.username if q.author else 'Member',
             'author_role': q.author.get_role_display() if q.author else '',
             'upvotes_count': q.upvotes.count(),
@@ -641,7 +698,7 @@ def api_qa_list(request):
 def api_question_detail_actions(request, pk):
     q = get_object_or_404(Question, pk=pk)
     if request.method == 'DELETE':
-        if not request.user.is_authenticated or request.user != q.author:
+        if not request.user.is_authenticated or (request.user != q.author and request.user.role != 'ADMIN'):
             return Response({'error': 'Unauthorized to delete this question.'}, status=403)
         q.delete()
         return Response({'success': True})
@@ -667,7 +724,16 @@ def api_question_detail_actions(request, pk):
     if not request.user.is_authenticated:
         return Response({'error': 'Please sign in to upvote.'}, status=401)
     if request.user in q.upvotes.all():
-        q.upvotes.remove(request.user)
+        exp = q.upvotes.remove(request.user)
     else:
-        q.upvotes.add(request.user)
+        exp = q.upvotes.add(request.user)
     return Response({'upvotes_count': q.upvotes.count()})
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def api_answer_delete(request, pk):
+    ans = get_object_or_404(Answer, pk=pk)
+    if not request.user.is_authenticated or (request.user != ans.author and request.user.role != 'ADMIN'):
+        return Response({'error': 'Unauthorized to delete this answer.'}, status=403)
+    ans.delete()
+    return Response({'success': True})

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BookOpen, Eye, Clock, Plus } from 'lucide-react'
+import { BookOpen, Eye, Clock, Plus, Trash2 } from 'lucide-react'
 import { PublishArticleModal } from './modals/PublishArticleModal'
 
 interface KnowledgeHubProps {
@@ -45,6 +45,18 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ user, onOpenAuth }) 
     setPublishModalOpen(true)
   }
 
+  const handleDelete = async (artId: number) => {
+    if (!confirm('Are you sure you want to delete this study guide?')) return
+    try {
+      const res = await fetch(`/api/knowledge/articles/${artId}/`, { method: 'DELETE' })
+      if (res.ok) {
+        setArticles(articles.filter(a => a.id !== artId))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
@@ -80,7 +92,7 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ user, onOpenAuth }) 
         <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
           <button
             onClick={() => setActiveView('articles')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === 'articles' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -88,7 +100,7 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ user, onOpenAuth }) 
           </button>
           <button
             onClick={() => setActiveView('roadmaps')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeView === 'roadmaps' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -101,41 +113,55 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ user, onOpenAuth }) 
         <div className="text-center py-12 text-slate-400 text-xs">Loading Knowledge Hub...</div>
       ) : activeView === 'articles' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.map((art) => (
-            <div key={art.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 uppercase">
-                    {art.category}
-                  </span>
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {art.read_time}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-extrabold text-slate-900 leading-snug">
-                  {art.title}
-                </h3>
-                <p className="text-xs text-slate-500 line-clamp-3">
-                  {art.summary}
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1">
-                  <span className="text-slate-400 text-[11px] font-medium">By <span className="font-bold text-slate-700">{art.author_name}</span></span>
-                  {art.author_role && (
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-800">
-                      {art.author_role}
+          {articles.map((art) => {
+            const isMyArticle = user && (user.id === art.author_id || user.role === 'ADMIN')
+            return (
+              <div key={art.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 uppercase">
+                      {art.category}
                     </span>
-                  )}
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {art.read_time}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-extrabold text-slate-900 leading-snug">
+                    {art.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 line-clamp-3">
+                    {art.summary}
+                  </p>
                 </div>
-                <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                  <Eye className="w-3 h-3" /> {art.views_count} views
-                </span>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-400 text-[11px] font-medium">By <span className="font-bold text-slate-700">{art.author_name}</span></span>
+                    {art.author_role && (
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-800">
+                        {art.author_role}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                      <Eye className="w-3 h-3" /> {art.views_count} views
+                    </span>
+                    {isMyArticle && (
+                      <button
+                        onClick={() => handleDelete(art.id)}
+                        className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                        title="Delete Study Guide"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

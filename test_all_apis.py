@@ -243,26 +243,63 @@ def run_tests():
         print("[FAIL] [12/14] Knowledge RBAC failed:", e)
         failed += 1
 
-    # 13. Test Cleanup: Delete Question and Project
+    # 13. Test Cleanup: Delete Question, Answer, Interview, Article, Session, and Mentor Profile Removal
+    art_id = r_allowed.json()["id"]
     try:
+        # Delete question
         r_del_q = s_student.delete(f"{BASE_DJANGO}/api/qa/questions/{q_id}/")
         assert r_del_q.status_code == 200 and r_del_q.json()["success"] == True
+
+        # Delete project
         r_del_p = s_student.delete(f"{BASE_DJANGO}/api/projects/{proj_id}/")
         assert r_del_p.status_code == 200 and r_del_p.json()["success"] == True
-        print("[PASS] [13/14] Resource Deletion CRUD (Deleted test question & project) passed!")
+
+        # Delete article (as mentor)
+        r_del_art = s_mentor.delete(f"{BASE_DJANGO}/api/knowledge/articles/{art_id}/")
+        assert r_del_art.status_code == 200 and r_del_art.json()["success"] == True
+
+        # Cancel/delete mentorship session (as student)
+        r_del_sess = s_student.delete(f"{BASE_DJANGO}/api/mentorship/sessions/{booking_id}/")
+        assert r_del_sess.status_code == 200 and r_del_sess.json()["success"] == True
+
+        print("[PASS] [13/15] Resource Deletion CRUD (Deleted test question, project, article, and cancelled session) passed!")
         passed += 1
     except Exception as e:
-        print("[FAIL] [13/14] Resource Deletion failed:", e)
+        print("[FAIL] [13/15] Resource Deletion failed:", e)
         failed += 1
 
-    # 14. Test Vite Dev Server Proxy directly
+    # 14. Test Undo/Delete Mentor Profile
+    try:
+        import time
+        ts = int(time.time())
+        # Create a temp session for a user with mentor profile, then undo/delete mentor profile
+        s_temp = requests.Session()
+        r_reg = s_temp.post(f"{BASE_DJANGO}/api/auth/register/", json={
+            "username": f"mistaken_mentor_{ts}",
+            "email": f"mistaken_{ts}@mca.edu",
+            "password": "pass1234",
+            "first_name": "Test",
+            "last_name": "Mentor",
+            "role": "ALUMNI"
+        })
+        assert r_reg.status_code == 200
+        r_remove = s_temp.post(f"{BASE_DJANGO}/api/mentorship/profile/remove/")
+        assert r_remove.status_code == 200 and r_remove.json()["success"] == True
+        assert r_remove.json()["user"]["role"] == "STUDENT"
+        print("[PASS] [14/15] Undo/Delete Mentor Profile (Account successfully reverted to MCA Student) passed!")
+        passed += 1
+    except Exception as e:
+        print("[FAIL] [14/15] Undo/Delete Mentor Profile failed:", e)
+        failed += 1
+
+    # 15. Test Vite Dev Server Proxy directly
     try:
         r = requests.get(f"{BASE_VITE}/api/stats/")
         assert r.status_code == 200
-        print(f"[PASS] [14/14] Vite proxy -> Django (/api/stats/ via {BASE_VITE}) passed!")
+        print(f"[PASS] [15/15] Vite proxy -> Django (/api/stats/ via {BASE_VITE}) passed!")
         passed += 1
     except Exception as e:
-        print(f"[FAIL] [14/14] Vite proxy test failed: {e}")
+        print(f"[FAIL] [15/15] Vite proxy test failed: {e}")
         failed += 1
 
     print(f"\n==========================================")
@@ -273,3 +310,4 @@ def run_tests():
 
 if __name__ == "__main__":
     run_tests()
+

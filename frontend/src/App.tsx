@@ -52,6 +52,7 @@ export function App() {
           user={user}
           onOpenAuth={handleOpenAuth}
           onLogout={handleLogout}
+          onUserUpdate={(updatedUser) => setUser(updatedUser)}
         />
 
         {/* Global Statistics Strip */}
@@ -64,7 +65,13 @@ export function App() {
           {activeTab === 'knowledge' && <KnowledgeHub user={user} onOpenAuth={handleOpenAuth} />}
           {activeTab === 'interviews' && <InterviewHub user={user} onOpenAuth={handleOpenAuth} />}
           {activeTab === 'projects' && <ProjectsHub user={user} onOpenAuth={handleOpenAuth} />}
-          {activeTab === 'mentorship' && <MentorshipHub user={user} onOpenAuth={handleOpenAuth} />}
+          {activeTab === 'mentorship' && (
+            <MentorshipHub 
+              user={user} 
+              onOpenAuth={handleOpenAuth} 
+              onUserUpdate={(updatedUser) => setUser(updatedUser)} 
+            />
+          )}
           {activeTab === 'qa' && <QAHub user={user} onOpenAuth={handleOpenAuth} />}
         </main>
       </div>

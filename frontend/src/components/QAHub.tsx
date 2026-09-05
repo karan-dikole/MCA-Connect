@@ -57,11 +57,29 @@ export const QAHub: React.FC<QAHubProps> = ({ user, onOpenAuth }) => {
     }
   }
 
-  const handleDelete = async (qId: number) => {
-    if (!window.confirm('Are you sure you want to delete this question?')) return
+  const handleDelete = async (questionId: number) => {
+    if (!confirm('Are you sure you want to delete this question?')) return
     try {
-      await fetch(`/api/qa/questions/${qId}/`, { method: 'DELETE' })
-      setQuestions(questions.filter(q => q.id !== qId))
+      const res = await fetch(`/api/qa/questions/${questionId}/`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        setQuestions(questions.filter(q => q.id !== questionId))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleDeleteAnswer = async (answerId: number) => {
+    if (!confirm('Are you sure you want to delete your answer?')) return
+    try {
+      const res = await fetch(`/api/qa/answers/${answerId}/`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        fetchQuestions()
+      }
     } catch (e) {
       console.error(e)
     }
@@ -218,24 +236,38 @@ export const QAHub: React.FC<QAHubProps> = ({ user, onOpenAuth }) => {
                       {q.answers.length === 0 ? (
                         <p className="text-xs text-slate-400 italic">No answers yet. Be the first to share a solution!</p>
                       ) : (
-                        q.answers.map((ans: any) => (
-                          <div key={ans.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-2">
-                                <span className="font-extrabold text-slate-800">{ans.author_name}</span>
-                                {ans.is_mentor ? (
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
-                                    <Sparkles className="w-2.5 h-2.5" /> Verified Mentor Solution
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] text-slate-400 font-medium">{ans.author_role}</span>
-                                )}
+                        q.answers.map((ans: any) => {
+                          const isMyAns = user && (user.id === ans.author_id || user.role === 'ADMIN')
+                          return (
+                            <div key={ans.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-extrabold text-slate-800">{ans.author_name}</span>
+                                  {ans.is_mentor ? (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                                      <Sparkles className="w-2.5 h-2.5" /> Verified Mentor Solution
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 font-medium">{ans.author_role}</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] text-slate-400">{ans.created_at}</span>
+                                  {isMyAns && (
+                                    <button
+                                      onClick={() => handleDeleteAnswer(ans.id)}
+                                      className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                      title="Delete Answer"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                              <span className="text-[10px] text-slate-400">{ans.created_at}</span>
+                              <p className="text-xs text-slate-700 leading-relaxed">{ans.content}</p>
                             </div>
-                            <p className="text-xs text-slate-700 leading-relaxed">{ans.content}</p>
-                          </div>
-                        ))
+                          )
+                        })
                       )}
                     </div>
 
