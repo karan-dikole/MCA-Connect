@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 760px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <h2>Edit Your Profile</h2>
+      <p>Customize your MCA Connect public profile, skills matrix, and mentorship status.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please review the errors below.
+        </div>
+      {% endif %}
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          {{ form.last_name }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Headline</label>
+        {{ form.headline }}
+        <div class="form-help">e.g. "MCA 2025 | Cloud & Backend Developer | SDE Intern @ Amazon"</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bio / About Me</label>
+        {{ form.bio }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Avatar Photo</label>
+        {{ form.avatar }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">College / University</label>
+          {{ form.college }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Batch Year</label>
+          {{ form.batch_year }}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Company / Organization</label>
+          {{ form.company }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Designation</label>
+          {{ form.designation }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Technical Skills (Comma separated)</label>
+        {{ form.skills }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Areas of Interest (Comma separated)</label>
+        {{ form.areas_of_interest }}
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">GitHub URL</label>
+          {{ form.github_url }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">LinkedIn URL</label>
+          {{ form.linkedin_url }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Portfolio URL</label>
+          {{ form.portfolio_url }}
+        </div>
+      </div>
+
+      <div class="form-group" style="display:flex; align-items:center; gap:0.75rem; margin-top:1rem; padding:1rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        {{ form.is_mentor_available }}
+        <div>
+          <label class="form-label" style="margin:0; cursor:pointer;" for="id_is_mentor_available">Available for Mentorship & 1-on-1 Guidance</label>
+          <div class="form-help">Allow juniors to request resume reviews and mock interviews with you.</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'accounts:profile' user.username %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

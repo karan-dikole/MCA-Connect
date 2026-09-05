@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Collaborative Projects & Teammate Finder - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="badge badge-emerald" style="margin-bottom:0.5rem;">HACKATHONS & CAPSTONES</span>
+      <h1>Collaborative Project Hub & Matchmaker</h1>
+      <p>Showcase full-stack applications, AI models, and recruit passionate teammates for hackathons and academic capstones.</p>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <a href="{% url 'projects:project_create' %}" class="btn btn-primary">+ Showcase Project</a>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" placeholder="Search project title, tech stack..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:200px;">
+      
+      <select name="category" class="form-control" style="flex:1; min-width:160px;">
+        <option value="">All Categories</option>
+        {% for cat_val, cat_label in categories %}
+          <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
+
+      <div style="display:flex; align-items:center; gap:0.5rem; background:var(--bg-surface); padding:0.5rem 0.85rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <input type="checkbox" name="teammates" value="1" id="teammates_chk" {% if teammates_only == '1' %}checked{% endif %}>
+        <label for="teammates_chk" style="font-size:0.85rem; cursor:pointer; font-weight:600;">Teammates Wanted Only</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{% url 'projects:project_list' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Projects Grid -->
+  <div class="grid-3">
+    {% for proj in projects %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="card-header">
+            <span class="badge badge-primary">{{ proj.get_category_display }}</span>
+            {% if proj.is_looking_for_teammates %}
+              <span class="badge badge-cyan" style="animation:pulse 2s infinite;">🚀 Recruiting</span>
+            {% endif %}
+          </div>
+
+          <h3 style="font-size:1.2rem; margin-bottom:0.4rem;">
+            <a href="{{ proj.get_absolute_url }}">{{ proj.title }}</a>
+          </h3>
+
+          <p style="font-size:0.86rem; margin-bottom:0.85rem; color:var(--text-secondary);">{{ proj.tagline }}</p>
+
+          {% if proj.is_looking_for_teammates and proj.roles_needed %}
+            <div style="background:var(--primary-light); padding:0.6rem; border-radius:var(--radius-sm); border:1px solid var(--border-highlight); margin-bottom:0.75rem;">
+              <span style="font-size:0.75rem; color:var(--primary); font-weight:700; display:block;">ROLES NEEDED:</span>
+              <span style="font-size:0.82rem;">{{ proj.roles_needed }}</span>
+            </div>
+          {% endif %}
+
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:1rem;">
+            {% for tech in proj.get_tech_list|slice:":4" %}
+              <span class="tag">{{ tech }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <img src="{{ proj.author.get_avatar_url }}" alt="{{ proj.author.username }}" class="avatar" style="width:26px;height:26px;">
+            <span style="font-size:0.82rem; font-weight:600;"><a href="{% url 'accounts:profile' proj.author.username %}">{{ proj.author.first_name|default:proj.author.username }}</a></span>
+          </div>
+
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <a href="{% url 'projects:project_like' proj.slug %}" class="interactive-btn ajax-action-btn" data-url="{% url 'projects:project_like' proj.slug %}">
+              ❤️ <span class="count-val">{{ proj.likes.count }}</span>
+            </a>
+            <a href="{{ proj.get_absolute_url }}" class="btn btn-secondary btn-sm">Explore</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No projects listed under this filter.</p>
+        <a href="{% url 'projects:project_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Be the First to Showcase a Project!</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

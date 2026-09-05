@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ roadmap.title }} - MCA Connect Roadmap{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+      <span style="font-size:3rem;">{{ roadmap.icon }}</span>
+      <div>
+        <span class="badge badge-primary" style="margin-bottom:0.35rem;">CAREER ROADMAP</span>
+        <h1 style="font-size:2rem; margin:0;">{{ roadmap.title }}</h1>
+        <div style="font-size:0.9rem; color:var(--text-muted); margin-top:0.25rem;">
+          Target Role: <strong>{{ roadmap.target_role }}</strong> • {{ roadmap.difficulty }}
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:1rem; background:var(--primary-light); border-radius:var(--radius-md); border:1px solid var(--border-highlight); margin-bottom:2rem;">
+      <p style="margin:0; font-size:0.92rem; color:var(--text-primary);">{{ roadmap.summary }}</p>
+    </div>
+
+    <div class="markdown-body">
+      {{ roadmap.rendered_html|safe }}
+    </div>
+
+    <div style="margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+      <a href="{% url 'knowledge:roadmaps_list' %}" class="btn btn-secondary btn-sm">← Back to All Roadmaps</a>
+      <a href="{% url 'knowledge:article_list' %}" class="btn btn-primary btn-sm">Explore Related Articles</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

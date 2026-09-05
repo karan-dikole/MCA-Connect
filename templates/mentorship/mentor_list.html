@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Find an Alumni Mentor - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="badge badge-cyan" style="margin-bottom:0.5rem;">CAREER & TECHNICAL GUIDANCE</span>
+      <h1>Book 1-on-1 Alumni Mentorship Sessions</h1>
+      <p>Receive personalized resume reviews, mock DSA & System Design interviews, and career roadmap guidance.</p>
+    </div>
+    {% if user.is_authenticated %}
+      <a href="{% url 'mentorship:mentor_setup' %}" class="btn btn-primary">Become a Mentor / Edit Slots</a>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <input type="text" name="q" placeholder="Search by mentor name, company, expertise..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:220px;">
+      
+      <select name="domain" class="form-control" style="flex:1; min-width:180px;">
+        <option value="">All Expertise Domains</option>
+        <option value="System Design" {% if selected_domain == 'System Design' %}selected{% endif %}>System Design</option>
+        <option value="DSA" {% if selected_domain == 'DSA' %}selected{% endif %}>Data Structures & Algorithms</option>
+        <option value="Full-Stack" {% if selected_domain == 'Full-Stack' %}selected{% endif %}>Full-Stack Web Dev</option>
+        <option value="Cloud" {% if selected_domain == 'Cloud' %}selected{% endif %}>Cloud & DevOps</option>
+        <option value="Resume" {% if selected_domain == 'Resume' %}selected{% endif %}>Resume Critique</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Search Mentors</button>
+      <a href="{% url 'mentorship:mentor_list' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Mentors Grid -->
+  <div class="grid-3">
+    {% for mentor in mentors %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1rem;">
+            <img src="{{ mentor.user.get_avatar_url }}" alt="{{ mentor.user.username }}" class="avatar avatar-lg" style="border-color:var(--primary);">
+            <div>
+              <h3 style="font-size:1.15rem; margin-bottom:0.2rem;">
+                <a href="{% url 'accounts:profile' mentor.user.username %}">{{ mentor.user.get_full_name|default:mentor.user.username }}</a>
+              </h3>
+              <div style="font-size:0.85rem; color:var(--primary); font-weight:600;">{{ mentor.headline }}</div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">{{ mentor.years_of_experience }} Years Experience</div>
+            </div>
+          </div>
+
+          <p style="font-size:0.86rem; margin-bottom:1rem;">{{ mentor.about|truncatewords:24 }}</p>
+
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:1rem;">
+            {% for exp in mentor.get_expertise_list|slice:":4" %}
+              <span class="badge badge-cyan" style="font-size:0.75rem;">{{ exp }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span style="font-size:0.8rem; color:var(--accent-emerald); font-weight:600;">✨ Free MCA Mentorship</span>
+          <a href="{% url 'mentorship:book_session' mentor.user.id %}" class="btn btn-primary btn-sm">Book 1-on-1 →</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No mentors found matching criteria.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

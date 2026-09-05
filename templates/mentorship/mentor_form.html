@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <span class="badge badge-cyan" style="margin-bottom:0.5rem;">MENTORSHIP PROFILE</span>
+      <h2>{{ title }}</h2>
+      <p>Configure your mentorship offerings, expertise topics, and preferred meeting platform.</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please review the errors below.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Mentor Headline</label>
+        {{ form.headline }}
+        <div class="form-help">e.g. "Senior SDE @ Amazon | Mentored 40+ MCA Students"</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Years of Industry Experience</label>
+          {{ form.years_of_experience }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Meeting Tool</label>
+          {{ form.preferred_meeting_tool }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Expertise Domains (Comma-separated)</label>
+        {{ form.expertise_areas }}
+        <div class="form-help">e.g. System Design, DSA, Full-Stack Python/Django, Resume Review</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">About Your Mentorship & How You Help</label>
+        {{ form.about }}
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:0.75rem; margin:1.5rem 0; padding:1.25rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <strong style="font-size:0.95rem; margin-bottom:0.25rem;">Services You Offer to Juniors:</strong>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          {{ form.offers_resume_review }}
+          <label for="id_offers_resume_review" style="font-size:0.88rem; cursor:pointer;">📄 Resume Review & Optimization</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          {{ form.offers_mock_interview }}
+          <label for="id_offers_mock_interview" style="font-size:0.88rem; cursor:pointer;">🎯 Mock Technical / HR Interviews</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          {{ form.offers_career_guidance }}
+          <label for="id_offers_career_guidance" style="font-size:0.88rem; cursor:pointer;">🚀 Career Roadmap & Transition Guidance</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          {{ form.offers_higher_studies }}
+          <label for="id_offers_higher_studies" style="font-size:0.88rem; cursor:pointer;">🎓 Higher Studies (GATE / Ph.D / MS Guidance)</label>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Save Mentor Profile</button>
+        <a href="{% url 'mentorship:mentor_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

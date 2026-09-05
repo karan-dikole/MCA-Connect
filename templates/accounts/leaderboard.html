@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard & Badges - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <span class="badge badge-amber" style="font-size:0.85rem; margin-bottom:0.5rem;">HALL OF FAME</span>
+    <h1>Top Community Contributors & Mentors</h1>
+    <p style="max-width:600px; margin: 0 auto;">Celebrating students and alumni who make MCA Connect vibrant through articles, interview debriefs, answers, and mentorship.</p>
+  </div>
+
+  <div class="grid-main-side">
+    <!-- Leaderboard Table Column -->
+    <div class="card">
+      <h3 style="margin-bottom: 1.5rem;">🏆 Nationwide Leaderboard</h3>
+      
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        {% for member in top_contributors %}
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <span style="font-family:var(--font-heading); font-weight:800; font-size:1.2rem; width:28px; text-align:center; color:{% if forloop.counter == 1 %}#fbbf24{% elif forloop.counter == 2 %}#94a3b8{% elif forloop.counter == 3 %}#d97706{% else %}var(--text-muted){% endif %};">
+                #{{ forloop.counter }}
+              </span>
+              <img src="{{ member.get_avatar_url }}" alt="{{ member.username }}" class="avatar" style="width:40px;height:40px;">
+              <div>
+                <a href="{% url 'accounts:profile' member.username %}" style="font-weight:700; font-size:0.95rem;">
+                  {{ member.get_full_name|default:member.username }}
+                </a>
+                <div style="font-size:0.78rem; color:var(--text-muted);">
+                  {{ member.headline|default:member.get_role_display }}
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:right;">
+              <span class="badge badge-amber" style="font-size:0.85rem;">⭐ {{ member.reputation_points }} pts</span>
+            </div>
+          </div>
+        {% empty %}
+          <p>No contributors yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Unlockable Badges Column -->
+    <div class="card">
+      <h3 style="margin-bottom: 1.5rem;">🎖️ Unlockable Badges</h3>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for badge in all_badges %}
+          <div style="padding:0.75rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.25rem;">
+              <span style="font-size:1.5rem;">{{ badge.icon }}</span>
+              <strong style="font-size:0.92rem;">{{ badge.name }}</strong>
+            </div>
+            <p style="font-size:0.8rem; margin:0 0 0.4rem;">{{ badge.description }}</p>
+            <span class="badge badge-cyan" style="font-size:0.7rem;">Unlocks at {{ badge.points_required }} reputation points</span>
+          </div>
+        {% empty %}
+          <p style="font-size:0.85rem; color:var(--text-muted);">Badges are initialized automatically.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

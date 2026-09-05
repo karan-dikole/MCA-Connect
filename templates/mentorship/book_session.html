@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Book Session with {{ mentor_user.get_full_name|default:mentor_user.username }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 680px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <!-- Mentor Snippet -->
+    <div style="display:flex; gap:1rem; align-items:center; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border-color);">
+      <img src="{{ mentor_user.get_avatar_url }}" alt="{{ mentor_user.username }}" class="avatar avatar-lg" style="border-color:var(--primary);">
+      <div>
+        <span class="badge badge-cyan" style="margin-bottom:0.25rem;">1-ON-1 GUIDANCE</span>
+        <h2 style="margin:0 0 0.2rem;">Book Session with {{ mentor_user.get_full_name|default:mentor_user.username }}</h2>
+        <div style="font-size:0.85rem; color:var(--text-muted);">{{ mentor_user.headline }}</div>
+      </div>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please check the booking form fields.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Session Focus Area</label>
+        {{ form.session_type }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Requested Date</label>
+          {{ form.requested_date }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time Slot</label>
+          {{ form.requested_time }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Background, Questions & Links (Resume / Project)</label>
+        {{ form.student_notes }}
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Submit Mentorship Request →</button>
+        <a href="{% url 'mentorship:mentor_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

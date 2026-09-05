@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <span class="badge badge-primary" style="margin-bottom:0.5rem;">TECHNICAL Q&A</span>
+      <h2>{{ title }}</h2>
+      <p>Ask clear, detailed questions to get answers from seniors and alumni.</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please review the errors below.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Question Title</label>
+        {{ form.title }}
+        <div class="form-help">Be specific. Imagine you are asking another developer.</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Programming Language / Domain</label>
+          {{ form.language }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Optional Reputation Bounty (You have {{ user.reputation_points }} pts)</label>
+          {{ form.bounty_points }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Detailed Explanation (Markdown supported)</label>
+        {{ form.content }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Code Snippet / Traceback (Optional)</label>
+        {{ form.code_snippet }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tags (Comma-separated)</label>
+        {{ form.tags }}
+        <div class="form-help">e.g. django, python, rest-api, postgresql</div>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Publish Question →</button>
+        <a href="{% url 'qa:question_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

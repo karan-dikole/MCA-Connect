@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}AI Code Explainer & Complexity Analyzer - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+  <div style="margin-bottom: 2rem;">
+    <a href="{% url 'ai_assistant:hub' %}" style="font-size:0.85rem;">← Back to AI Assistant Hub</a>
+    <h1 style="margin-top:0.35rem;">⚡ AI Code Explainer & Debugger</h1>
+    <p>Analyze complexity heuristics, execution walkthroughs, and potential edge-case bugs in your algorithm.</p>
+  </div>
+
+  <div class="grid-2">
+    <!-- Code Input Box -->
+    <div class="card" style="padding: 1.75rem;">
+      <h3 style="margin-bottom: 1rem; font-size:1.15rem;">Source Code Input</h3>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select name="language" class="form-control">
+            <option value="python" {% if language == 'python' %}selected{% endif %}>Python</option>
+            <option value="java" {% if language == 'java' %}selected{% endif %}>Java</option>
+            <option value="cpp" {% if language == 'cpp' %}selected{% endif %}>C++</option>
+            <option value="javascript" {% if language == 'javascript' %}selected{% endif %}>JavaScript</option>
+            <option value="sql" {% if language == 'sql' %}selected{% endif %}>SQL</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Code Snippet</label>
+          <textarea name="code" rows="12" class="form-control" style="font-family:var(--font-mono); font-size:0.88rem; background:#0d1117; color:#e6edf3;" placeholder="Paste code here...">{{ initial_code }}</textarea>
+        </div>
+
+        <button type="submit" name="explain_btn" class="btn btn-primary" style="width:100%;">⚡ Explain & Analyze Code</button>
+      </form>
+    </div>
+
+    <!-- AI Output Analysis Box -->
+    <div>
+      {% if result %}
+        <div class="card" style="padding: 1.75rem; border-color:var(--border-highlight); background:linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(17, 24, 39, 0.9) 100%);">
+          <span class="badge badge-cyan" style="margin-bottom:0.75rem;">ANALYSIS REPORT</span>
+          <h3 style="margin-bottom: 1rem; font-size:1.2rem;">Complexity & Execution Breakdown</h3>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; margin-bottom:1.25rem;">
+            <div style="background:var(--bg-surface); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+              <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Time Complexity</div>
+              <div style="font-weight:700; color:var(--accent-emerald); font-family:var(--font-mono); font-size:0.9rem; margin-top:0.2rem;">{{ result.time_complexity }}</div>
+            </div>
+            <div style="background:var(--bg-surface); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+              <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Space Complexity</div>
+              <div style="font-weight:700; color:var(--accent-cyan); font-family:var(--font-mono); font-size:0.9rem; margin-top:0.2rem;">{{ result.space_complexity }}</div>
+            </div>
+          </div>
+
+          <h4 style="font-size:0.95rem; margin-bottom:0.5rem;">Key Observations:</h4>
+          <ul style="padding-left:1.25rem; font-size:0.86rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+            {% for pt in result.points %}
+              <li style="margin-bottom:0.35rem;">{{ pt|safe }}</li>
+            {% endfor %}
+          </ul>
+
+          <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--accent-amber);">⚠️ Edge Cases & Verification Gotchas:</h4>
+          <ul style="padding-left:1.25rem; font-size:0.86rem; color:var(--text-secondary); margin-bottom:1rem;">
+            {% for g in result.gotchas %}
+              <li style="margin-bottom:0.35rem;">{{ g }}</li>
+            {% endfor %}
+          </ul>
+
+          <div style="font-size:0.85rem; color:var(--text-muted); padding-top:0.75rem; border-top:1px solid var(--border-color);">
+            {{ result.summary }}
+          </div>
+        </div>
+      {% else %}
+        <div class="card" style="padding: 3rem 1.5rem; text-align:center;">
+          <span style="font-size:2.5rem;">🤖</span>
+          <h3 style="margin:0.75rem 0 0.5rem; font-size:1.15rem;">Ready to Analyze Code</h3>
+          <p style="font-size:0.88rem;">Paste your code on the left and click <strong>"Explain & Analyze Code"</strong> to generate real-time heuristics.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

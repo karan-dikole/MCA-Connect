@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Search Results for "{{ query }}" - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2rem;">
+    <h2>Search Results for <span style="color:var(--primary);">"{{ query }}"</span></h2>
+    <p>{{ total_results }} total results discovered across articles, experiences, projects, and members.</p>
+  </div>
+
+  {% if total_results == 0 %}
+    <div class="card" style="text-align:center; padding: 3.5rem;">
+      <span style="font-size:3rem;">🔍</span>
+      <h3 style="margin:1rem 0 0.5rem;">No direct matches found</h3>
+      <p style="margin-bottom:1.5rem;">Try searching for terms like "Django", "DSA", "Amazon", "React", or "Operating Systems".</p>
+      <a href="{% url 'knowledge:article_list' %}" class="btn btn-primary btn-sm">Explore Knowledge Hub</a>
+    </div>
+  {% else %}
+    <!-- Articles Results -->
+    {% if articles %}
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="margin-bottom:1rem;">📚 Knowledge Articles ({{ articles|length }})</h3>
+        <div class="grid-3">
+          {% for article in articles %}
+            <div class="card">
+              <span class="badge badge-cyan" style="margin-bottom:0.5rem;">{{ article.category.name }}</span>
+              <h4><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h4>
+              <p style="font-size:0.85rem; margin:0.5rem 0;">{{ article.summary|truncatewords:16 }}</p>
+              <div style="font-size:0.78rem; color:var(--text-muted);">By {{ article.author.username }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Interviews Results -->
+    {% if experiences %}
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="margin-bottom:1rem;">💼 Placement & Interview Experiences ({{ experiences|length }})</h3>
+        <div class="grid-2">
+          {% for exp in experiences %}
+            <div class="card">
+              <div style="display:flex; justify-content:space-between;">
+                <strong>{{ exp.company.name }}</strong>
+                <span class="badge badge-emerald">{{ exp.get_offer_status_display }}</span>
+              </div>
+              <h4 style="margin:0.4rem 0;"><a href="{{ exp.get_absolute_url }}">{{ exp.title }}</a></h4>
+              <p style="font-size:0.85rem;">{{ exp.summary|truncatewords:20 }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Projects Results -->
+    {% if projects %}
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="margin-bottom:1rem;">🚀 Collaborative Projects ({{ projects|length }})</h3>
+        <div class="grid-3">
+          {% for proj in projects %}
+            <div class="card">
+              <h4><a href="{{ proj.get_absolute_url }}">{{ proj.title }}</a></h4>
+              <p style="font-size:0.85rem; margin:0.4rem 0;">{{ proj.tagline }}</p>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">{{ proj.tech_stack }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Members Results -->
+    {% if users %}
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="margin-bottom:1rem;">👥 Members & Alumni ({{ users|length }})</h3>
+        <div class="grid-4">
+          {% for u in users %}
+            <div class="card" style="text-align:center;">
+              <img src="{{ u.get_avatar_url }}" alt="{{ u.username }}" class="avatar avatar-lg" style="margin:0 auto 0.5rem;">
+              <h4><a href="{% url 'accounts:profile' u.username %}">{{ u.get_full_name|default:u.username }}</a></h4>
+              <p style="font-size:0.78rem; color:var(--text-muted);">{{ u.headline|default:u.get_role_display }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}My Mentorship Sessions - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2.5rem;">
+    <span class="badge badge-primary" style="margin-bottom:0.5rem;">1-ON-1 SCHEDULE</span>
+    <h1>My Mentorship Sessions</h1>
+    <p>Track your student guidance requests and scheduled alumni mentorship sessions.</p>
+  </div>
+
+  <div class="grid-2">
+    <!-- Sessions as Student -->
+    <div class="card">
+      <h3 style="margin-bottom: 1.25rem;">🎓 Sessions as a Student</h3>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for s in as_student %}
+          <div style="padding:1.2rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <strong>{{ s.get_session_type_display }}</strong>
+              <span class="badge {% if s.status == 'CONFIRMED' %}badge-emerald{% elif s.status == 'PENDING' %}badge-amber{% else %}badge-muted{% endif %}">
+                {{ s.get_status_display }}
+              </span>
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">
+              Mentor: <strong><a href="{% url 'accounts:profile' s.mentor.username %}">{{ s.mentor.get_full_name|default:s.mentor.username }}</a></strong>
+            </div>
+            <div style="font-size:0.82rem; margin-bottom:0.5rem;">
+              📅 {{ s.requested_date }} • ⏰ {{ s.requested_time }}
+            </div>
+            {% if s.meeting_link %}
+              <div style="margin-top:0.75rem;">
+                <a href="{{ s.meeting_link }}" target="_blank" class="btn btn-gradient-cyan btn-sm">🔗 Join Meeting Link</a>
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p style="font-size:0.85rem; color:var(--text-muted); padding:1rem 0;">You haven't requested any mentorship sessions yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Sessions as Mentor -->
+    <div class="card">
+      <h3 style="margin-bottom: 1.25rem;">🧑‍🏫 Requests Received as Mentor</h3>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for s in as_mentor %}
+          <div style="padding:1.2rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <strong>{{ s.get_session_type_display }}</strong>
+              <span class="badge {% if s.status == 'CONFIRMED' %}badge-emerald{% elif s.status == 'PENDING' %}badge-amber{% else %}badge-muted{% endif %}">
+                {{ s.get_status_display }}
+              </span>
+            </div>
+            <div style="font-size:0.85rem; margin-bottom:0.4rem;">
+              Student: <strong><a href="{% url 'accounts:profile' s.student.username %}">{{ s.student.get_full_name|default:s.student.username }}</a></strong>
+            </div>
+            <div style="font-size:0.82rem; margin-bottom:0.5rem;">
+              📅 {{ s.requested_date }} • ⏰ {{ s.requested_time }}
+            </div>
+            <p style="font-size:0.85rem; margin-bottom:0.75rem;"><strong>Notes:</strong> {{ s.student_notes }}</p>
+
+            {% if s.status == 'PENDING' %}
+              <form action="{% url 'mentorship:update_status' s.id 'CONFIRMED' %}" method="POST" style="margin-top:0.5rem;">
+                {% csrf_token %}
+                <input type="url" name="meeting_link" placeholder="Enter Google Meet / Zoom link..." class="form-control" style="margin-bottom:0.5rem; font-size:0.85rem;" required>
+                <div style="display:flex; gap:0.5rem;">
+                  <button type="submit" class="btn btn-primary btn-sm">Confirm & Send Link</button>
+                  <a href="{% url 'mentorship:update_status' s.id 'CANCELLED' %}" class="btn btn-secondary btn-sm">Decline</a>
+                </div>
+              </form>
+            {% elif s.status == 'CONFIRMED' %}
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <a href="{{ s.meeting_link }}" target="_blank" class="btn btn-gradient-cyan btn-sm">🔗 Open Meeting</a>
+                <a href="{% url 'mentorship:update_status' s.id 'COMPLETED' %}" class="btn btn-primary btn-sm">Mark Completed (+40 pts)</a>
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p style="font-size:0.85rem; color:var(--text-muted); padding:1rem 0;">No incoming student requests.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

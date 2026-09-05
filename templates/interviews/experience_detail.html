@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}{{ experience.title }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <!-- Experience Header -->
+  <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.5rem;">
+      <div style="display:flex; gap:1.25rem; align-items:center;">
+        <img src="{{ experience.company.get_logo }}" alt="{{ experience.company.name }}" style="width:60px;height:60px;border-radius:var(--radius-md);object-fit:cover;">
+        <div>
+          <span class="badge {% if experience.offer_status == 'OFFERED' %}badge-emerald{% else %}badge-rose{% endif %}" style="margin-bottom:0.35rem;">
+            {{ experience.get_offer_status_display }}
+          </span>
+          <h1 style="font-size:1.85rem; margin:0 0 0.35rem;">{{ experience.title }}</h1>
+          <div style="font-size:0.9rem; color:var(--text-muted);">
+            {{ experience.company.name }} • {{ experience.role_applied }} • Batch {{ experience.batch_year }} • {{ experience.get_experience_type_display }}
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <a href="{% url 'interviews:experience_upvote' experience.slug %}" class="interactive-btn ajax-action-btn {% if is_upvoted %}active{% endif %}" data-url="{% url 'interviews:experience_upvote' experience.slug %}">
+          👍 <span class="count-val">{{ experience.upvotes.count }}</span> Upvotes
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Attributes Strip -->
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-color); text-align:center;">
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Difficulty</div>
+        <div style="font-weight:700; margin-top:0.2rem;">{{ experience.get_difficulty_display }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Rounds</div>
+        <div style="font-weight:700; margin-top:0.2rem;">{{ experience.rounds_count }} Rounds</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Compensation</div>
+        <div style="font-weight:700; margin-top:0.2rem;">{{ experience.compensation_details|default:"Not Disclosed" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Shared By</div>
+        <div style="font-weight:700; margin-top:0.2rem;"><a href="{% url 'accounts:profile' experience.author.username %}">{{ experience.author.get_full_name|default:experience.author.username }}</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Overview -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.75rem;">
+    <h3 style="margin-bottom:0.75rem; font-size:1.15rem;">📌 Overview & Preparation Strategy</h3>
+    <p style="font-size:0.95rem; line-height:1.7;">{{ experience.summary|linebreaksbr }}</p>
+  </div>
+
+  <!-- Detailed Rounds Breakdown -->
+  <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+    <h3 style="margin-bottom:1.25rem; font-size:1.25rem;">🔍 Round-by-Round Breakdown</h3>
+    <div class="markdown-body">
+      {{ experience.rendered_rounds|safe }}
+    </div>
+  </div>
+
+  <!-- Questions Asked -->
+  {% if experience.questions_asked %}
+    <div class="card" style="margin-bottom: 2rem; padding: 2rem;">
+      <h3 style="margin-bottom:1.25rem; font-size:1.25rem;">❓ Technical & Problem Solving Questions</h3>
+      <div class="markdown-body">
+        {{ experience.rendered_questions|safe }}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Tips for Juniors -->
+  {% if experience.tips_for_juniors %}
+    <div class="card" style="background:var(--primary-light); border-color:var(--border-highlight); margin-bottom: 2.5rem; padding: 1.75rem;">
+      <h3 style="color:var(--primary); margin-bottom:0.75rem; font-size:1.15rem;">💡 Advice & Tips for Junior Batches</h3>
+      <div class="markdown-body" style="color:var(--text-primary);">
+        {{ experience.rendered_tips|safe }}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Comments / Questions on Experience -->
+  <div class="card" style="margin-bottom: 3rem;">
+    <h3 style="margin-bottom:1.5rem;">💬 Discussion with {{ experience.author.first_name|default:experience.author.username }}</h3>
+
+    {% if user.is_authenticated %}
+      <form action="{% url 'interviews:add_comment' experience.slug %}" method="POST" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <div class="form-group">
+          {{ comment_form.content }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+      </form>
+    {% else %}
+      <p><a href="{% url 'accounts:login' %}">Sign in</a> to leave a comment or ask a clarifying question.</p>
+    {% endif %}
+
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      {% for comment in experience.comments.all %}
+        <div style="padding:1rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+            <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted);">{{ comment.created_at|timesince }} ago</span>
+          </div>
+          <p style="font-size:0.88rem; margin:0;">{{ comment.content }}</p>
+        </div>
+      {% empty %}
+        <p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">No comments yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

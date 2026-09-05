@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}About MCA Connect - Knowledge, Experience & Collaboration{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+  <div class="card" style="padding: 3rem 2.5rem; margin-bottom: 2rem;">
+    <span class="badge badge-primary" style="margin-bottom: 0.75rem;">OUR MISSION</span>
+    <h1 style="margin-bottom: 1.25rem;">Transforming MCA & CS Education into Real-World Industry Readiness</h1>
+    
+    <div class="markdown-body">
+      <p>
+        <strong>MCA Connect</strong> is built from the ground up for MCA (Master of Computer Applications) and Computer Science students, alumni innovators, and mentors. Traditional academic curriculums often move at a different pace than dynamic tech industries. MCA Connect bridges this gap by creating a unified collaborative ecosystem.
+      </p>
+
+      <h3>Core Pillars of the Platform</h3>
+      <ul>
+        <li><strong>Knowledge Hub:</strong> Peer-reviewed deep-dive technical articles, system design architectures, and interactive roadmaps.</li>
+        <li><strong>Interview Vault:</strong> Detailed round-by-round placement debriefs from FAANG, Tier-1 MNCs, and high-growth tech startups.</li>
+        <li><strong>Project & Hackathon Matchmaking:</strong> Form teams, build capstones, and recruit peers with complementary skill sets.</li>
+        <li><strong>1-on-1 Alumni Mentorship:</strong> Direct booking system for mock interviews, resume critiques, and career roadmapping.</li>
+        <li><strong>Next-Gen AI Copilots:</strong> Instant code analysis, algorithm complexity estimation, and job skill gap calculators.</li>
+      </ul>
+
+      <blockquote>
+        "Knowledge grows when shared, and careers accelerate when seniors pull juniors up."
+      </blockquote>
+
+      <h3>Gamification & Badges</h3>
+      <p>
+        Members earn reputation points for writing quality articles (+20 pts), sharing interview experiences (+30 pts), answering technical questions (+15 pts), and conducting mentorship sessions (+40 pts). Top contributors unlock exclusive verified badges and appear on the nationwide Leaderboard.
+      </p>
+    </div>
+
+    <div style="margin-top: 2rem; display:flex; gap: 1rem;">
+      <a href="{% url 'accounts:register' %}" class="btn btn-primary">Join the Community →</a>
+      <a href="{% url 'accounts:leaderboard' %}" class="btn btn-secondary">View Leaderboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

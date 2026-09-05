@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Interview Experiences Vault - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="badge badge-amber" style="margin-bottom:0.5rem;">ALUMNI & SENIOR ARCHIVES</span>
+      <h1>Placement & Interview Experiences</h1>
+      <p>Verified round-by-round interview debriefs, OA questions, technical rounds, and compensation insights.</p>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <a href="{% url 'interviews:company_directory' %}" class="btn btn-secondary">🏢 Company Directory</a>
+      <a href="{% url 'interviews:experience_create' %}" class="btn btn-primary">+ Share Your Interview</a>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" placeholder="Search company, role, DSA questions..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:200px;">
+      
+      <select name="company" class="form-control" style="flex:1; min-width:160px;">
+        <option value="">All Companies</option>
+        {% for c in companies %}
+          <option value="{{ c.slug }}" {% if selected_company == c.slug %}selected{% endif %}>{{ c.name }} ({{ c.exp_count }})</option>
+        {% endfor %}
+      </select>
+
+      <select name="difficulty" class="form-control" style="flex:1; min-width:140px;">
+        <option value="">All Difficulties</option>
+        <option value="EASY" {% if selected_difficulty == 'EASY' %}selected{% endif %}>Easy (1/5)</option>
+        <option value="MEDIUM" {% if selected_difficulty == 'MEDIUM' %}selected{% endif %}>Medium (3/5)</option>
+        <option value="HARD" {% if selected_difficulty == 'HARD' %}selected{% endif %}>Challenging (4/5)</option>
+        <option value="VERY_HARD" {% if selected_difficulty == 'VERY_HARD' %}selected{% endif %}>Very Tough (5/5)</option>
+      </select>
+
+      <select name="status" class="form-control" style="flex:1; min-width:140px;">
+        <option value="">All Offer Statuses</option>
+        <option value="OFFERED" {% if selected_status == 'OFFERED' %}selected{% endif %}>Offered 🎉</option>
+        <option value="REJECTED" {% if selected_status == 'REJECTED' %}selected{% endif %}>Not Selected</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{% url 'interviews:experience_list' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Experiences Grid -->
+  <div class="grid-2">
+    {% for exp in experiences %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="card-header">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <img src="{{ exp.company.get_logo }}" alt="{{ exp.company.name }}" style="width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;">
+              <div>
+                <h3 style="font-size:1.15rem; margin:0;"><a href="{{ exp.get_absolute_url }}">{{ exp.company.name }}</a></h3>
+                <div style="font-size:0.8rem; color:var(--text-muted);">{{ exp.role_applied }} • Batch {{ exp.batch_year }}</div>
+              </div>
+            </div>
+            <span class="badge {% if exp.offer_status == 'OFFERED' %}badge-emerald{% else %}badge-rose{% endif %}">
+              {{ exp.get_offer_status_display }}
+            </span>
+          </div>
+
+          <h4 style="margin-bottom:0.5rem; font-size:1.05rem;">
+            <a href="{{ exp.get_absolute_url }}">{{ exp.title }}</a>
+          </h4>
+
+          <p style="font-size:0.86rem; margin-bottom:1rem;">{{ exp.summary|truncatewords:25 }}</p>
+
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+            <span class="badge badge-muted">⏳ {{ exp.rounds_count }} Rounds</span>
+            <span class="badge badge-primary">{{ exp.get_difficulty_display }}</span>
+            <span class="badge badge-cyan">{{ exp.get_experience_type_display }}</span>
+            {% if exp.compensation_details %}
+              <span class="badge badge-amber">💰 {{ exp.compensation_details }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <img src="{{ exp.author.get_avatar_url }}" alt="{{ exp.author.username }}" class="avatar" style="width:26px;height:26px;">
+            <span style="font-size:0.82rem; font-weight:600;"><a href="{% url 'accounts:profile' exp.author.username %}">{{ exp.author.get_full_name|default:exp.author.username }}</a></span>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <a href="{% url 'interviews:experience_upvote' exp.slug %}" class="interactive-btn ajax-action-btn" data-url="{% url 'interviews:experience_upvote' exp.slug %}">
+              👍 <span class="count-val">{{ exp.upvotes.count }}</span>
+            </a>
+            <a href="{{ exp.get_absolute_url }}" class="btn btn-secondary btn-sm">Read Rounds →</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No interview experiences found for the selected filter.</p>
+        <a href="{% url 'interviews:experience_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Share Your Experience (+30 reputation pts)</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

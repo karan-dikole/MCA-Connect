@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Alumni Directory - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2rem;">
+    <span class="badge badge-emerald" style="margin-bottom:0.5rem;">ALUMNI NETWORK</span>
+    <h1>MCA Alumni Directory</h1>
+    <p>Connect with alumni working at Google, Microsoft, Amazon, TCS, Infosys, and leading high-growth startups.</p>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <input type="text" name="q" placeholder="Search by name, skills, designation..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:220px;">
+      
+      <select name="company" class="form-control" style="flex:1; min-width:160px;">
+        <option value="">All Companies</option>
+        {% for comp in companies %}
+          <option value="{{ comp }}" {% if selected_company == comp %}selected{% endif %}>{{ comp }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="batch" class="form-control" style="flex:1; min-width:140px;">
+        <option value="">All Batches</option>
+        {% for b in batches %}
+          <option value="{{ b }}" {% if selected_batch|stringformat:"s" == b|stringformat:"s" %}selected{% endif %}>Batch {{ b }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{% url 'accounts:alumni_directory' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Alumni Cards Grid -->
+  <div class="grid-3">
+    {% for alumni in alumni_list %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1rem;">
+            <img src="{{ alumni.get_avatar_url }}" alt="{{ alumni.username }}" class="avatar avatar-lg">
+            <div>
+              <h3 style="font-size:1.1rem; margin-bottom:0.2rem;">
+                <a href="{% url 'accounts:profile' alumni.username %}">{{ alumni.get_full_name|default:alumni.username }}</a>
+              </h3>
+              <div style="font-size:0.85rem; color:var(--primary); font-weight:600;">
+                {{ alumni.designation }}{% if alumni.company %} @ {{ alumni.company }}{% endif %}
+              </div>
+              <div style="font-size:0.78rem; color:var(--text-muted);">
+                Batch of {{ alumni.batch_year|default:"Alumni" }}
+              </div>
+            </div>
+          </div>
+
+          {% if alumni.headline %}
+            <p style="font-size:0.85rem; margin-bottom:0.75rem;">{{ alumni.headline }}</p>
+          {% endif %}
+
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:1rem;">
+            {% for skill in alumni.get_skills_list|slice:":4" %}
+              <span class="tag">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div style="padding-top:0.75rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+          <a href="{% url 'accounts:profile' alumni.username %}" class="btn btn-secondary btn-sm">View Profile</a>
+          {% if alumni.is_mentor_available %}
+            <a href="{% url 'mentorship:book_session' alumni.id %}" class="btn btn-primary btn-sm">Request Mentorship</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No alumni match the specified filters.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

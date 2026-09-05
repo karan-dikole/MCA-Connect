@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Knowledge Hub - Tech Articles, Notes & Roadmaps - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header Banner -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="badge badge-primary" style="margin-bottom:0.5rem;">ACADEMIC & INDUSTRY REPOSITORY</span>
+      <h1>Knowledge Hub & Technical Articles</h1>
+      <p>Master Data Structures, Operating Systems, DBMS, System Design, and Modern Web & Cloud Stacks.</p>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <a href="{% url 'knowledge:roadmaps_list' %}" class="btn btn-secondary">🗺️ Career Roadmaps</a>
+      <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary">+ Write New Article</a>
+    </div>
+  </div>
+
+  <!-- Filter & Subject Tags Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" placeholder="Search keywords, topics, algorithms..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:200px;">
+      
+      <select name="category" class="form-control" style="flex:1; min-width:160px;">
+        <option value="">All Subjects / Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="difficulty" class="form-control" style="flex:1; min-width:140px;">
+        <option value="">All Difficulties</option>
+        <option value="BEGINNER" {% if selected_difficulty == 'BEGINNER' %}selected{% endif %}>Beginner</option>
+        <option value="INTERMEDIATE" {% if selected_difficulty == 'INTERMEDIATE' %}selected{% endif %}>Intermediate</option>
+        <option value="ADVANCED" {% if selected_difficulty == 'ADVANCED' %}selected{% endif %}>Advanced</option>
+      </select>
+
+      <select name="sort" class="form-control" style="flex:1; min-width:130px;">
+        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+        <option value="top" {% if selected_sort == 'top' %}selected{% endif %}>Most Upvoted</option>
+        <option value="views" {% if selected_sort == 'views' %}selected{% endif %}>Most Viewed</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{% url 'knowledge:article_list' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Main Grid with Sidebar -->
+  <div class="grid-sidebar">
+    <!-- Categories List Sidebar -->
+    <div>
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size:1.1rem; margin-bottom:1rem;">📚 Core MCA Subjects</h3>
+        <div style="display:flex; flex-direction:column; gap:0.4rem;">
+          {% for cat in categories %}
+            <a href="{% url 'knowledge:category_detail' cat.slug %}" style="display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0.65rem; border-radius:var(--radius-sm); color:var(--text-secondary); transition:background var(--transition-fast);" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='transparent'">
+              <span>{{ cat.icon }} {{ cat.name }}</span>
+              <span class="badge badge-muted" style="font-size:0.75rem;">{{ cat.articles_count }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Roadmaps Card -->
+      <div class="card">
+        <h3 style="font-size:1.1rem; margin-bottom:0.75rem;">🗺️ Structured Roadmaps</h3>
+        <p style="font-size:0.82rem; margin-bottom:1rem;">Step-by-step guidance curated for software careers.</p>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          {% for r in recent_roadmaps %}
+            <a href="{% url 'knowledge:roadmap_detail' r.slug %}" class="btn btn-secondary btn-sm" style="justify-content:flex-start;">
+              {{ r.icon }} {{ r.title }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Articles Grid -->
+    <div>
+      <div class="grid-2">
+        {% for article in articles %}
+          <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div class="card-header">
+                <span class="badge badge-cyan">{{ article.category.icon }} {{ article.category.name }}</span>
+                <span style="font-size:0.78rem; color:var(--text-muted);">{{ article.estimate_read_time }}</span>
+              </div>
+              
+              <h3 style="font-size:1.15rem; margin-bottom:0.5rem;">
+                <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+              </h3>
+              
+              <p style="font-size:0.86rem; margin-bottom:0.85rem;">{{ article.summary|truncatewords:20 }}</p>
+              
+              <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:1rem;">
+                {% for tag in article.get_tags_list|slice:":3" %}
+                  <span class="tag">#{{ tag }}</span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <img src="{{ article.author.get_avatar_url }}" alt="{{ article.author.username }}" class="avatar" style="width:28px;height:28px;">
+                <span style="font-size:0.82rem; font-weight:600;">{{ article.author.first_name|default:article.author.username }}</span>
+              </div>
+
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <a href="{% url 'knowledge:article_upvote' article.slug %}" class="interactive-btn ajax-action-btn {% if article.id in user_upvotes %}active{% endif %}" data-url="{% url 'knowledge:article_upvote' article.slug %}">
+                  👍 <span class="count-val">{{ article.upvotes.count }}</span>
+                </a>
+                <a href="{% url 'knowledge:article_bookmark' article.slug %}" class="interactive-btn ajax-action-btn {% if article.id in user_bookmarks %}active{% endif %}" data-url="{% url 'knowledge:article_bookmark' article.slug %}">
+                  🔖
+                </a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+            <p>No articles found matching your criteria.</p>
+            <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Write the First Article on this Topic!</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

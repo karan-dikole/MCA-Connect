@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} - MCA Connect Project Hub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+  <!-- Project Banner & Header -->
+  <div class="card" style="margin-bottom: 2rem; padding: 2.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.5rem;">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+          <span class="badge badge-primary">{{ project.get_category_display }}</span>
+          {% if project.is_looking_for_teammates %}
+            <span class="badge badge-cyan">🚀 Open for Teammates</span>
+          {% endif %}
+          <span style="font-size:0.8rem; color:var(--text-muted);">Posted {{ project.created_at|date:"M d, Y" }}</span>
+        </div>
+
+        <h1 style="font-size:2.2rem; margin:0 0 0.5rem;">{{ project.title }}</h1>
+        <p style="font-size:1.1rem; color:var(--text-secondary); margin:0;">{{ project.tagline }}</p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        {% if user == project.author %}
+          <a href="{% url 'projects:project_edit' project.slug %}" class="btn btn-secondary btn-sm">Edit Project</a>
+        {% endif %}
+        <a href="{% url 'projects:project_like' project.slug %}" class="interactive-btn ajax-action-btn {% if is_liked %}active{% endif %}" data-url="{% url 'projects:project_like' project.slug %}">
+          ❤️ <span class="count-val">{{ project.likes.count }}</span> Likes
+        </a>
+      </div>
+    </div>
+
+    <!-- Links Strip -->
+    <div style="display:flex; gap:1rem; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-color); flex-wrap:wrap;">
+      {% if project.github_url %}
+        <a href="{{ project.github_url }}" target="_blank" class="btn btn-secondary btn-sm">🐙 GitHub Repository</a>
+      {% endif %}
+      {% if project.live_demo_url %}
+        <a href="{{ project.live_demo_url }}" target="_blank" class="btn btn-gradient-cyan btn-sm">🌐 Live Demo Deployment</a>
+      {% endif %}
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-left:auto;">
+        <img src="{{ project.author.get_avatar_url }}" alt="{{ project.author.username }}" class="avatar" style="width:28px;height:28px;">
+        <span style="font-size:0.88rem;">Creator: <a href="{% url 'accounts:profile' project.author.username %}">{{ project.author.get_full_name|default:project.author.username }}</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teammate Matchmaking Banner / Application Box -->
+  {% if project.is_looking_for_teammates %}
+    <div class="card" style="background:linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(99, 102, 241, 0.12) 100%); border-color:var(--accent-cyan); margin-bottom: 2rem; padding: 2rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h3 style="color:var(--accent-cyan); margin-bottom:0.35rem;">🤝 Looking for Teammates!</h3>
+          <p style="margin:0; font-size:0.95rem;"><strong>Required Roles:</strong> {{ project.roles_needed }}</p>
+        </div>
+
+        {% if user.is_authenticated and user != project.author %}
+          {% if has_applied %}
+            <span class="badge badge-emerald" style="padding:0.6rem 1rem; font-size:0.9rem;">✅ Application Submitted</span>
+          {% else %}
+            <button onclick="document.getElementById('apply-form-box').scrollIntoView({behavior:'smooth'})" class="btn btn-primary">Apply to Join Team →</button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Tech Stack Grid -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <h3 style="margin-bottom:0.75rem; font-size:1.1rem;">🛠️ Technology Stack</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+      {% for tech in project.get_tech_list %}
+        <span class="tag" style="font-size:0.85rem; padding:0.35rem 0.75rem;">{{ tech }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Description Body -->
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2.5rem;">
+    <h3 style="margin-bottom:1.25rem;">📖 Project Overview & Architecture</h3>
+    <div class="markdown-body">
+      {{ project.rendered_description|safe }}
+    </div>
+  </div>
+
+  <!-- Teammate Applications (For Project Owner) -->
+  {% if user == project.author and project.is_looking_for_teammates %}
+    <div class="card" style="margin-bottom: 2.5rem;">
+      <h3 style="margin-bottom: 1.25rem;">📬 Teammate Applications ({{ project.applications.count }})</h3>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {% for app in project.applications.all %}
+          <div style="padding:1.2rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <img src="{{ app.applicant.get_avatar_url }}" alt="{{ app.applicant.username }}" class="avatar">
+                <div>
+                  <strong><a href="{% url 'accounts:profile' app.applicant.username %}">{{ app.applicant.get_full_name|default:app.applicant.username }}</a></strong>
+                  <span style="font-size:0.8rem; color:var(--primary); margin-left:0.5rem;">Role: {{ app.role_applied }}</span>
+                </div>
+              </div>
+              <span class="badge {% if app.status == 'ACCEPTED' %}badge-emerald{% elif app.status == 'DECLINED' %}badge-rose{% else %}badge-amber{% endif %}">
+                {{ app.get_status_display }}
+              </span>
+            </div>
+            <p style="font-size:0.9rem; margin:0.5rem 0 0.75rem;">{{ app.pitch_message }}</p>
+            
+            {% if app.status == 'PENDING' %}
+              <div style="display:flex; gap:0.5rem;">
+                <a href="{% url 'projects:application_status' app.id 'ACCEPTED' %}" class="btn btn-primary btn-sm">Accept to Team</a>
+                <a href="{% url 'projects:application_status' app.id 'DECLINED' %}" class="btn btn-secondary btn-sm">Decline</a>
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p style="font-size:0.85rem; color:var(--text-muted);">No applications received yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Application Submission Box (For Non-Owners) -->
+  {% if user.is_authenticated and user != project.author and project.is_looking_for_teammates and not has_applied %}
+    <div class="card" id="apply-form-box" style="margin-bottom: 2.5rem; padding: 2rem;">
+      <h3 style="margin-bottom:1rem;">🚀 Apply to Join This Project</h3>
+      <form action="{% url 'projects:project_apply' project.slug %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Role You Wish to Contribute As</label>
+          {{ application_form.role_applied }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pitch Message / Relevant Skills</label>
+          {{ application_form.pitch_message }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <!-- Comments Section -->
+  <div class="card" style="margin-bottom: 3rem;">
+    <h3 style="margin-bottom:1.5rem;">💬 Discussion & Feedback</h3>
+
+    {% if user.is_authenticated %}
+      <form action="{% url 'projects:add_comment' project.slug %}" method="POST" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <div class="form-group">
+          {{ comment_form.content }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Post Feedback</button>
+      </form>
+    {% endif %}
+
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      {% for c in project.comments.all %}
+        <div style="padding:1rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+            <strong>{{ c.author.get_full_name|default:c.author.username }}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted);">{{ c.created_at|timesince }} ago</span>
+          </div>
+          <p style="font-size:0.9rem; margin:0;">{{ c.content }}</p>
+        </div>
+      {% empty %}
+        <p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">No comments yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

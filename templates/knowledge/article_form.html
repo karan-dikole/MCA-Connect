@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <span class="badge badge-primary" style="margin-bottom:0.5rem;">KNOWLEDGE CONTRIBUTION</span>
+      <h2>{{ title }}</h2>
+      <p>Share your technical notes, algorithms, system designs, or cheat sheets in Markdown.</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please fix the form errors below.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Article Title</label>
+        {{ form.title }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Subject / Category</label>
+          {{ form.category }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty Level</label>
+          {{ form.difficulty }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Key Takeaway Summary (Max 2 sentences)</label>
+        {{ form.summary }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Article Content (Markdown with code formatting supported)</label>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.35rem;">
+          Use <code>```python</code>, <code>```java</code>, or <code>```cpp</code> for formatted syntax highlighting blocks.
+        </div>
+        {{ form.content }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tags (Comma-separated)</label>
+        {{ form.tags }}
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Publish Article (+20 pts) →</button>
+        <a href="{% url 'knowledge:article_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

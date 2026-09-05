@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <span class="badge badge-primary" style="margin-bottom:0.5rem;">PROJECT SHOWCASE</span>
+      <h2>{{ title }}</h2>
+      <p>Showcase your software projects and recruit teammates for hackathons.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please review the errors below.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Project Title</label>
+        {{ form.title }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          {{ form.category }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tech Stack (Comma-separated)</label>
+          {{ form.tech_stack }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tagline (One-line summary)</label>
+        {{ form.tagline }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">GitHub Repository URL</label>
+          {{ form.github_url }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Live Demo / Deployment URL</label>
+          {{ form.live_demo_url }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description & Architecture (Markdown supported)</label>
+        {{ form.description }}
+      </div>
+
+      <div class="form-group" style="padding:1.25rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color); margin-top:1.5rem;">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          {{ form.is_looking_for_teammates }}
+          <label class="form-label" style="margin:0; cursor:pointer;" for="id_is_looking_for_teammates">Looking for Teammates / Contributors</label>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Roles Needed</label>
+          {{ form.roles_needed }}
+          <div class="form-help">e.g. "React Frontend Specialist, UI/UX Designer, ML Engineer"</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Publish Project (+25 pts) →</button>
+        <a href="{% url 'projects:project_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

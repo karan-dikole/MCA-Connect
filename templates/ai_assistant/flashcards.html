@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}AI Study Flashcards & Cheat Sheets - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+  <div style="margin-bottom: 2rem;">
+    <a href="{% url 'ai_assistant:hub' %}" style="font-size:0.85rem;">← Back to AI Assistant Hub</a>
+    <h1 style="margin-top:0.35rem;">🗂️ Subject Revision Flashcards</h1>
+    <p>High-yield quick review cards for academic semester exams and placement technical rounds.</p>
+  </div>
+
+  <!-- Topic Selector -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <input type="text" name="topic" placeholder="e.g. DBMS Normalization, Operating System Deadlocks, Dynamic Programming, Computer Networks..." value="{{ topic }}" class="form-control" style="flex:2; min-width:220px;">
+      <button type="submit" class="btn btn-primary">Generate Revision Cards</button>
+    </form>
+
+    <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap; font-size:0.8rem; color:var(--text-muted);">
+      <span>Quick topics:</span>
+      <a href="?topic=DBMS Normalization & Indexing" class="tag">DBMS Normalization</a>
+      <a href="?topic=Operating System Deadlocks & Memory" class="tag">OS Deadlocks & Paging</a>
+      <a href="?topic=Data Structures & Algorithms Complexity" class="tag">DSA Complexity & Sorting</a>
+      <a href="?topic=System Design & Scalability" class="tag">System Design</a>
+    </div>
+  </div>
+
+  <!-- Flashcards Display -->
+  {% if cards %}
+    <div style="display:flex; flex-direction:column; gap:1.25rem; margin-bottom:3rem;">
+      {% for card in cards %}
+        <div class="card" style="padding: 1.75rem; border-left: 4px solid var(--primary); transition:transform var(--transition-fast);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+            <span class="badge badge-primary">Card #{{ forloop.counter }}</span>
+          </div>
+          <h3 style="font-size:1.15rem; margin-bottom:0.75rem; color:var(--text-primary);">{{ card.front }}</h3>
+          <div style="padding:0.85rem 1rem; background:var(--bg-surface); border-radius:var(--radius-sm); border:1px solid var(--border-color); font-size:0.92rem; line-height:1.65; color:var(--text-secondary);">
+            {{ card.back|linebreaksbr }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

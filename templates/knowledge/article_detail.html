@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.title }} - MCA Connect Knowledge Hub{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <!-- Article Header Meta -->
+  <div style="margin-bottom: 2rem;">
+    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+      <a href="{% url 'knowledge:category_detail' article.category.slug %}" class="badge badge-cyan">
+        {{ article.category.icon }} {{ article.category.name }}
+      </a>
+      <span class="badge badge-muted">{{ article.get_difficulty_display }}</span>
+      <span style="font-size:0.85rem; color:var(--text-muted);">{{ article.estimate_read_time }}</span>
+      <span style="font-size:0.85rem; color:var(--text-muted);">• Published {{ article.created_at|date:"M d, Y" }}</span>
+    </div>
+
+    <h1 style="font-size:2.4rem; margin-bottom:1rem;">{{ article.title }}</h1>
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:1rem;">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <img src="{{ article.author.get_avatar_url }}" alt="{{ article.author.username }}" class="avatar avatar-lg" style="width:44px;height:44px;">
+        <div>
+          <div style="font-weight:700;"><a href="{% url 'accounts:profile' article.author.username %}">{{ article.author.get_full_name|default:article.author.username }}</a></div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">{{ article.author.headline|default:article.author.get_role_display }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; align-items:center;">
+        {% if user == article.author %}
+          <a href="{% url 'knowledge:article_edit' article.slug %}" class="btn btn-secondary btn-sm">Edit Article</a>
+        {% endif %}
+        <a href="{% url 'knowledge:article_upvote' article.slug %}" class="interactive-btn ajax-action-btn {% if is_upvoted %}active{% endif %}" data-url="{% url 'knowledge:article_upvote' article.slug %}">
+          👍 <span class="count-val">{{ article.upvotes.count }}</span> Upvotes
+        </a>
+        <a href="{% url 'knowledge:article_bookmark' article.slug %}" class="interactive-btn ajax-action-btn {% if is_bookmarked %}active{% endif %}" data-url="{% url 'knowledge:article_bookmark' article.slug %}">
+          🔖 {% if is_bookmarked %}Saved{% else %}Bookmark{% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Callout -->
+  <div class="card" style="background:var(--primary-light); border-color:var(--border-highlight); margin-bottom:2rem; padding:1.25rem;">
+    <strong style="color:var(--primary); display:block; margin-bottom:0.25rem;">💡 Key Takeaway:</strong>
+    <p style="margin:0; font-size:0.95rem; color:var(--text-primary);">{{ article.summary }}</p>
+  </div>
+
+  <!-- Article Body Rendered Markdown -->
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2.5rem;">
+    <div class="markdown-body">
+      {{ article.rendered_html|safe }}
+    </div>
+
+    <!-- Tags -->
+    <div style="margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--border-color); display:flex; flex-wrap:wrap; gap:0.4rem;">
+      {% for tag in article.get_tags_list %}
+        <span class="tag">#{{ tag }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="card" style="margin-bottom: 3rem;">
+    <h3 style="margin-bottom: 1.5rem;">💬 Discussion & Questions ({{ article.comments.count }})</h3>
+
+    <!-- Post Comment Form -->
+    {% if user.is_authenticated %}
+      <form action="{% url 'knowledge:add_comment' article.slug %}" method="POST" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <div class="form-group">
+          {{ comment_form.content }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+      </form>
+    {% else %}
+      <div style="padding:1rem; background:var(--bg-surface); border-radius:var(--radius-md); text-align:center; margin-bottom:2rem;">
+        <p style="margin:0;">Please <a href="{% url 'accounts:login' %}">sign in</a> to participate in the technical discussion.</p>
+      </div>
+    {% endif %}
+
+    <!-- Comment List -->
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      {% for comment in article.comments.all %}
+        <div style="padding:1rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <img src="{{ comment.author.get_avatar_url }}" alt="{{ comment.author.username }}" class="avatar" style="width:24px;height:24px;">
+              <strong style="font-size:0.88rem;"><a href="{% url 'accounts:profile' comment.author.username %}">{{ comment.author.get_full_name|default:comment.author.username }}</a></strong>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-muted);">{{ comment.created_at|timesince }} ago</span>
+          </div>
+          <p style="font-size:0.9rem; margin:0;">{{ comment.content|linebreaksbr }}</p>
+        </div>
+      {% empty %}
+        <p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:1rem 0;">No comments yet. Start the conversation!</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

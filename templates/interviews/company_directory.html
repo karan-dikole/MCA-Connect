@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Company Archives & Placement Index - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom: 2.5rem;">
+    <span class="badge badge-primary" style="margin-bottom:0.5rem;">COMPANY DIRECTORY</span>
+    <h1>Top Tech Companies & Placement Archives</h1>
+    <p>Explore companies where MCA graduates and alumni have interviewed and secured offers.</p>
+  </div>
+
+  <div class="grid-3">
+    {% for comp in companies %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+            <img src="{{ comp.get_logo }}" alt="{{ comp.name }}" style="width:50px;height:50px;border-radius:var(--radius-sm);object-fit:cover;">
+            <div>
+              <h3 style="font-size:1.25rem; margin:0;"><a href="{% url 'interviews:experience_list' %}?company={{ comp.slug }}">{{ comp.name }}</a></h3>
+              <span class="badge badge-cyan" style="font-size:0.75rem; margin-top:0.25rem;">{{ comp.get_tier_display }}</span>
+            </div>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">{{ comp.industry }}</p>
+        </div>
+
+        <div class="card-footer">
+          <span style="font-size:0.85rem; font-weight:600; color:var(--primary);">{{ comp.experiences_total }} Experiences</span>
+          <a href="{% url 'interviews:experience_list' %}?company={{ comp.slug }}" class="btn btn-secondary btn-sm">View Vault →</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No companies indexed yet.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Share Interview Experience - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+  <div class="card" style="padding: 2.5rem 2rem;">
+    <div style="margin-bottom: 2rem;">
+      <span class="badge badge-amber" style="margin-bottom:0.5rem;">ALUMNI CONTRIBUTION</span>
+      <h2>Share Your Placement / Interview Experience</h2>
+      <p>Help 1st & 2nd year MCA juniors navigate hiring rounds with your real experiences and tips.</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+          Please check the form for errors.
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Company Name</label>
+        {{ form.company_name }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Article Title</label>
+        {{ form.title }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Role Applied For</label>
+          {{ form.role_applied }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Placement / Batch Year</label>
+          {{ form.batch_year }}
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">Experience Type</label>
+          {{ form.experience_type }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Offer Status</label>
+          {{ form.offer_status }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty Rating</label>
+          {{ form.difficulty }}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Compensation / CTC (Optional)</label>
+          {{ form.compensation_details }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total Rounds Count</label>
+          {{ form.rounds_count }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Overview & Preparation Strategy</label>
+        {{ form.summary }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Detailed Round-by-Round Breakdown (Markdown supported)</label>
+        {{ form.rounds_breakdown }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Specific Questions Asked (Technical, Coding, OS, DBMS)</label>
+        {{ form.questions_asked }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tips & Recommendations for Junior Batches</label>
+        {{ form.tips_for_juniors }}
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem;">
+        <button type="submit" class="btn btn-primary btn-lg">Publish Experience (+30 pts) →</button>
+        <a href="{% url 'interviews:experience_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

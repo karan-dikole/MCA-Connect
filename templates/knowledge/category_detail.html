@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} - MCA Connect Knowledge Category{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <a href="{% url 'knowledge:article_list' %}" style="font-size:0.85rem;">← Back to Hub</a>
+      <h1 style="margin-top:0.35rem;">{{ category.icon }} {{ category.name }}</h1>
+      <p>{{ category.description|default:"Curated articles, lecture summaries, and problem solving guides." }}</p>
+    </div>
+    <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary btn-sm">+ Add Article to {{ category.name }}</a>
+  </div>
+
+  <div class="grid-3">
+    {% for article in articles %}
+      <div class="card">
+        <span class="badge badge-muted" style="margin-bottom:0.5rem;">{{ article.get_difficulty_display }}</span>
+        <h3><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h3>
+        <p style="font-size:0.86rem; margin:0.5rem 0;">{{ article.summary|truncatewords:20 }}</p>
+        <div class="card-footer">
+          <span style="font-size:0.8rem; color:var(--text-muted);">By {{ article.author.username }}</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">👍 {{ article.upvotes.count }}</span>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>No articles published in this category yet.</p>
+        <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Publish the First Article!</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

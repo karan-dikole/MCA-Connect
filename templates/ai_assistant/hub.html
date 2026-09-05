@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}AI Study & Career Assistant - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="text-align: center; margin-bottom: 3.5rem;">
+    <span class="badge badge-cyan" style="font-size:0.85rem; margin-bottom:0.75rem;">NEXT-GEN MCA TOOLS</span>
+    <h1>AI Study Copilot & Career Intelligence</h1>
+    <p style="max-width: 620px; margin: 0 auto;">Intelligent tools built specifically for computer application students to explain code, analyze resume skill gaps, and generate high-yield revision flashcards.</p>
+  </div>
+
+  <div class="grid-3">
+    <!-- Code Explainer Card -->
+    <div class="card" style="padding: 2rem; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem;">AI Code Explainer & Debugger</h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+          Paste any complex algorithm, data structure, or database query in Python, Java, C++, or JS. Get asymptotic time/space complexities, logic breakdown, and edge-case gotchas.
+        </p>
+      </div>
+      <a href="{% url 'ai_assistant:code_explainer' %}" class="btn btn-primary" style="width:100%;">Launch Code Explainer →</a>
+    </div>
+
+    <!-- Resume Matcher Card -->
+    <div class="card" style="padding: 2rem; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem;">Resume vs Job Matcher</h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+          Evaluate your resume against target Job Descriptions (SDE, Fullstack, Cloud, Data). Calculate your match score percentage, detect missing skills, and get recommended MCA Connect tutorials.
+        </p>
+      </div>
+      <a href="{% url 'ai_assistant:resume_matcher' %}" class="btn btn-gradient-cyan" style="width:100%;">Analyze Resume Match →</a>
+    </div>
+
+    <!-- Study Flashcards Card -->
+    <div class="card" style="padding: 2rem; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🗂️</div>
+        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem;">Subject Flashcards & Cheat Sheets</h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+          Quick 5-minute revision flashcards for DBMS Normalization, OS Deadlocks, Networking 3-Way Handshake, and DSA Traversal algorithms before exams and interviews.
+        </p>
+      </div>
+      <a href="{% url 'ai_assistant:flashcards' %}" class="btn btn-secondary" style="width:100%;">Generate Flashcards →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

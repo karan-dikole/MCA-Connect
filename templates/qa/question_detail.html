@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}{{ question.title }} - MCA Connect Q&A{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <!-- Question Card -->
+  <div class="card" style="margin-bottom: 2rem; padding: 2.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+          {% if question.is_solved %}
+            <span class="badge badge-emerald">✅ Solved</span>
+          {% else %}
+            <span class="badge badge-amber">Open Question</span>
+          {% endif %}
+          <span class="badge badge-cyan">{{ question.get_language_display }}</span>
+          {% if question.bounty_points > 0 %}
+            <span class="badge badge-amber">💰 +{{ question.bounty_points }} Bounty</span>
+          {% endif %}
+          <span style="font-size:0.8rem; color:var(--text-muted);">Asked {{ question.created_at|timesince }} ago</span>
+        </div>
+        <h1 style="font-size:1.85rem; margin:0;">{{ question.title }}</h1>
+      </div>
+
+      <a href="{% url 'qa:question_upvote' question.slug %}" class="interactive-btn ajax-action-btn {% if is_upvoted %}active{% endif %}" data-url="{% url 'qa:question_upvote' question.slug %}">
+        👍 <span class="count-val">{{ question.upvotes.count }}</span> Upvotes
+      </a>
+    </div>
+
+    <!-- Question Markdown Description -->
+    <div class="markdown-body" style="margin: 1.5rem 0;">
+      {{ question.rendered_content|safe }}
+    </div>
+
+    <!-- Code Snippet (if any) -->
+    {% if question.code_snippet %}
+      <div style="margin: 1.5rem 0;">
+        <h4 style="font-size:0.95rem; margin-bottom:0.5rem;">Code Snippet / Traceback:</h4>
+        <pre><code class="language-{{ question.language }}">{{ question.code_snippet }}</code></pre>
+      </div>
+    {% endif %}
+
+    <!-- Tags & Author info -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:1.25rem; border-top:1px solid var(--border-color); flex-wrap:wrap; gap:1rem;">
+      <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+        {% for tag in question.get_tags_list %}
+          <span class="tag">#{{ tag }}</span>
+        {% endfor %}
+      </div>
+
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <img src="{{ question.author.get_avatar_url }}" alt="{{ question.author.username }}" class="avatar" style="width:32px;height:32px;">
+        <div style="font-size:0.85rem;">
+          <div><a href="{% url 'accounts:profile' question.author.username %}"><strong>{{ question.author.get_full_name|default:question.author.username }}</strong></a></div>
+          <div style="color:var(--text-muted); font-size:0.75rem;">⭐ {{ question.author.reputation_points }} points</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Answers Count Header -->
+  <div style="margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+    <h2>{{ answers.count }} Answer{{ answers.count|pluralize }}</h2>
+  </div>
+
+  <!-- Answers List -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem; margin-bottom: 2.5rem;">
+    {% for answer in answers %}
+      <div class="card" style="padding: 2rem; {% if answer.is_accepted %}border:2px solid var(--accent-emerald); background:rgba(16, 185, 129, 0.05);{% endif %}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <img src="{{ answer.author.get_avatar_url }}" alt="{{ answer.author.username }}" class="avatar" style="width:36px;height:36px;">
+            <div>
+              <strong><a href="{% url 'accounts:profile' answer.author.username %}">{{ answer.author.get_full_name|default:answer.author.username }}</a></strong>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Answered {{ answer.created_at|timesince }} ago</div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            {% if answer.is_accepted %}
+              <span class="badge badge-emerald" style="font-size:0.85rem; padding:0.4rem 0.75rem;">🌟 Accepted Solution</span>
+            {% elif user == question.author and not question.is_solved %}
+              <a href="{% url 'qa:answer_accept' answer.id %}" class="btn btn-primary btn-sm">Accept as Solution ✅</a>
+            {% endif %}
+
+            <a href="{% url 'qa:answer_upvote' answer.id %}" class="interactive-btn ajax-action-btn" data-url="{% url 'qa:answer_upvote' answer.id %}">
+              👍 <span class="count-val">{{ answer.upvotes.count }}</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="markdown-body">
+          {{ answer.rendered_content|safe }}
+        </div>
+
+        {% if answer.code_snippet %}
+          <div style="margin-top: 1rem;">
+            <pre><code class="language-python">{{ answer.code_snippet }}</code></pre>
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="card" style="text-align:center; padding:2.5rem;">
+        <p>No answers posted yet. Be the first to help out!</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Post Answer Box -->
+  {% if user.is_authenticated %}
+    <div class="card" style="padding: 2rem; margin-bottom: 3rem;">
+      <h3 style="margin-bottom:1rem;">💡 Submit Your Solution</h3>
+      <form action="{% url 'qa:answer_create' question.slug %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Your Detailed Answer (Markdown supported)</label>
+          {{ answer_form.content }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Optional Formatted Code Snippet</label>
+          {{ answer_form.code_snippet }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Post Answer (+15 pts) →</button>
+      </form>
+    </div>
+  {% else %}
+    <div class="card" style="text-align:center; padding:2rem; margin-bottom:3rem;">
+      <p>Have an answer to this question? <a href="{% url 'accounts:login' %}">Sign in</a> to contribute and earn reputation points.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

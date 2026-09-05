@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Profile & Stat Summary Header -->
+  <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(17, 24, 39, 0.8) 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem;">
+      <div style="display:flex; align-items:center; gap:1.25rem;">
+        <img src="{{ user.get_avatar_url }}" alt="{{ user.username }}" class="avatar avatar-lg">
+        <div>
+          <h2>Welcome back, {{ user.first_name|default:user.username }}! 👋</h2>
+          <p style="margin:0.25rem 0; font-size:0.95rem;">{{ user.headline|default:"Student at MCA Connect" }}</p>
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge-primary">Role: {{ user.get_role_display }}</span>
+            <span class="badge badge-amber">⭐ {{ user.reputation_points }} Reputation Points</span>
+            {% if user.is_verified_alumni %}
+              <span class="badge badge-emerald">Verified Alumni 🎓</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary btn-sm">+ Write Article</a>
+        <a href="{% url 'interviews:experience_create' %}" class="btn btn-secondary btn-sm">+ Share Interview</a>
+        <a href="{% url 'projects:project_create' %}" class="btn btn-secondary btn-sm">+ Post Project</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="grid-main-side">
+    <!-- Left Main Column -->
+    <div>
+      <!-- My Bookmarked Knowledge Articles -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <h3>🔖 Bookmarked Articles & Notes</h3>
+          <a href="{% url 'knowledge:article_list' %}" style="font-size:0.85rem;">Browse Hub →</a>
+        </div>
+        <div>
+          {% for bookmark in my_bookmarks %}
+            <div style="padding:0.75rem 0; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <a href="{{ bookmark.article.get_absolute_url }}" style="font-weight:600; font-size:0.95rem;">
+                  {{ bookmark.article.title }}
+                </a>
+                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">
+                  {{ bookmark.article.category.icon }} {{ bookmark.article.category.name }} • Saved on {{ bookmark.created_at|date:"M d, Y" }}
+                </div>
+              </div>
+              <a href="{{ bookmark.article.get_absolute_url }}" class="btn btn-secondary btn-sm">Read</a>
+            </div>
+          {% empty %}
+            <p style="padding:1rem 0; font-size:0.88rem; text-align:center;">No bookmarked articles yet. Explore the <a href="{% url 'knowledge:article_list' %}">Knowledge Hub</a> to save guides for later!</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- My Showcased Projects -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <h3>💻 My Collaborative Projects</h3>
+          <a href="{% url 'projects:project_create' %}" class="btn btn-primary btn-sm">+ New Project</a>
+        </div>
+        <div>
+          {% for proj in my_projects %}
+            <div style="padding:0.75rem 0; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <a href="{{ proj.get_absolute_url }}" style="font-weight:600; font-size:0.95rem;">{{ proj.title }}</a>
+                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">
+                  {{ proj.get_category_display }} • {{ proj.applications.count }} Teammate Applications
+                </div>
+              </div>
+              <a href="{% url 'projects:project_edit' proj.slug %}" class="btn btn-secondary btn-sm">Edit</a>
+            </div>
+          {% empty %}
+            <p style="padding:1rem 0; font-size:0.88rem; text-align:center;">You haven't showcased any projects yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Mentorship Bookings -->
+      <div class="card">
+        <div class="card-header">
+          <h3>🤝 Upcoming Mentorship Sessions</h3>
+          <a href="{% url 'mentorship:my_sessions' %}" style="font-size:0.85rem;">View All Sessions →</a>
+        </div>
+        <div>
+          {% for session in student_sessions %}
+            <div style="padding:0.75rem 0; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:600; font-size:0.92rem;">{{ session.get_session_type_display }}</div>
+                <div style="font-size:0.78rem; color:var(--text-muted);">
+                  With {{ session.mentor.get_full_name|default:session.mentor.username }} on {{ session.requested_date }} ({{ session.requested_time }})
+                </div>
+              </div>
+              <span class="badge {% if session.status == 'CONFIRMED' %}badge-emerald{% elif session.status == 'PENDING' %}badge-amber{% else %}badge-muted{% endif %}">
+                {{ session.get_status_display }}
+              </span>
+            </div>
+          {% empty %}
+            <p style="padding:1rem 0; font-size:0.88rem; text-align:center;">No upcoming sessions. Need guidance? <a href="{% url 'mentorship:mentor_list' %}">Book an Alumni Mentor</a>.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Column -->
+    <div>
+      <!-- AI Quick Assist Tool Card -->
+      <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(22, 30, 46, 0.9) 100%);">
+        <span class="badge badge-cyan" style="margin-bottom:0.5rem;">AI COPILOT</span>
+        <h3 style="font-size:1.1rem; margin-bottom:0.5rem;">Need Instant Study Help?</h3>
+        <p style="font-size:0.85rem; margin-bottom:1rem;">Analyze complex code, test your resume against real job roles, or generate quick subject flashcards.</p>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <a href="{% url 'ai_assistant:code_explainer' %}" class="btn btn-secondary btn-sm" style="justify-content:flex-start;">⚡ AI Code Explainer</a>
+          <a href="{% url 'ai_assistant:resume_matcher' %}" class="btn btn-secondary btn-sm" style="justify-content:flex-start;">📄 Resume Job Matcher</a>
+          <a href="{% url 'ai_assistant:flashcards' %}" class="btn btn-secondary btn-sm" style="justify-content:flex-start;">🗂️ Subject Flashcards</a>
+        </div>
+      </div>
+
+      <!-- Community Pulse / Activity Stream -->
+      <div class="card">
+        <h3 style="font-size:1.1rem; margin-bottom:1rem;">⚡ Community Feed</h3>
+        <div style="display:flex; flex-direction:column; gap:0.85rem;">
+          {% for act in recent_activities %}
+            <div style="display:flex; gap:0.6rem; align-items:flex-start; font-size:0.82rem;">
+              <img src="{{ act.user.get_avatar_url }}" alt="{{ act.user.username }}" class="avatar" style="width:24px;height:24px;margin-top:2px;">
+              <div>
+                <div><strong>{{ act.user.username }}</strong> {{ act.title }}</div>
+                <div style="color:var(--text-muted); font-size:0.75rem;">{{ act.created_at|timesince }} ago</div>
+              </div>
+            </div>
+          {% empty %}
+            <p style="font-size:0.82rem; color:var(--text-muted);">No recent activities.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

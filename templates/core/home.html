@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MCA Connect - A Common Platform for Knowledge, Experience & Collaboration{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-pill">
+      <span>🚀</span> Empowering 10,000+ MCA & CS Students Nationwide
+    </div>
+    <h1 class="hero-title">
+      Learn, Connect & Accelerate Your <br>
+      <span class="hero-gradient-text">Software Career Together</span>
+    </h1>
+    <p class="hero-subtitle">
+      The all-in-one ecosystem for deep-dive technical articles, verified alumni placement archives, collaborative hackathon matchmaking, 1-on-1 mentorship, and intelligent AI study tools.
+    </p>
+    <div class="hero-actions">
+      <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Get Started Free →</a>
+      <a href="{% url 'interviews:experience_list' %}" class="btn btn-secondary btn-lg">Explore Interview Vault</a>
+      <a href="{% url 'ai_assistant:hub' %}" class="btn btn-gradient-cyan btn-lg">✨ AI Study Buddy</a>
+    </div>
+  </section>
+
+  <!-- Live Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-num">{{ total_articles_count|default:"120+" }}</div>
+      <div class="stat-label">Tech Articles & Notes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">{{ total_interviews_count|default:"85+" }}</div>
+      <div class="stat-label">Interview Experiences</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">{{ total_projects_count|default:"45+" }}</div>
+      <div class="stat-label">Collab Projects</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">{{ active_mentors_count|default:"25+" }}</div>
+      <div class="stat-label">Active Alumni Mentors</div>
+    </div>
+  </div>
+
+  <!-- Featured Knowledge Hub Section -->
+  <section style="margin-bottom: 4rem;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;">
+      <div>
+        <span class="badge badge-primary" style="margin-bottom:0.5rem;">KNOWLEDGE HUB</span>
+        <h2>Curated Tech Guides & Masterclasses</h2>
+      </div>
+      <a href="{% url 'knowledge:article_list' %}" class="btn btn-outline btn-sm">View All Articles →</a>
+    </div>
+
+    <div class="grid-3">
+      {% for article in featured_articles %}
+        <div class="card">
+          <div class="card-header">
+            <span class="badge badge-cyan">{{ article.category.icon }} {{ article.category.name }}</span>
+            <span style="font-size:0.8rem;color:var(--text-muted);">{{ article.estimate_read_time }}</span>
+          </div>
+          <div class="card-body">
+            <h3 style="font-size:1.15rem;margin-bottom:0.6rem;">
+              <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+            </h3>
+            <p style="font-size:0.88rem;margin-bottom:1rem;">{{ article.summary|truncatewords:20 }}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.5rem;">
+              {% for tag in article.get_tags_list|slice:":3" %}
+                <span class="tag">#{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <img src="{{ article.author.get_avatar_url }}" alt="{{ article.author.username }}" class="avatar" style="width:26px;height:26px;">
+              <span style="font-size:0.82rem;font-weight:600;">{{ article.author.first_name|default:article.author.username }}</span>
+            </div>
+            <div style="display:flex;gap:0.75rem;font-size:0.82rem;color:var(--text-muted);">
+              <span>👍 {{ article.upvotes.count }}</span>
+              <span>👁️ {{ article.views_count }}</span>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+          <p>Exciting technical articles are being prepared!</p>
+          <a href="{% url 'knowledge:article_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Publish First Article</a>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Interview Vault Highlights -->
+  <section style="margin-bottom: 4rem;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;">
+      <div>
+        <span class="badge badge-amber" style="margin-bottom:0.5rem;">PLACEMENT INSIGHTS</span>
+        <h2>Real Interview Experiences from Seniors & Alumni</h2>
+      </div>
+      <a href="{% url 'interviews:experience_list' %}" class="btn btn-outline btn-sm">Explore Company Archives →</a>
+    </div>
+
+    <div class="grid-2">
+      {% for exp in recent_experiences %}
+        <div class="card">
+          <div class="card-header">
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+              <img src="{{ exp.company.get_logo }}" alt="{{ exp.company.name }}" style="width:38px;height:38px;border-radius:var(--radius-sm);object-fit:cover;">
+              <div>
+                <h4 style="margin:0;">{{ exp.company.name }}</h4>
+                <span style="font-size:0.8rem;color:var(--text-muted);">{{ exp.role_applied }} • Batch {{ exp.batch_year }}</span>
+              </div>
+            </div>
+            <span class="badge {% if exp.offer_status == 'OFFERED' %}badge-emerald{% else %}badge-rose{% endif %}">
+              {{ exp.get_offer_status_display }}
+            </span>
+          </div>
+          <div class="card-body">
+            <h3 style="font-size:1.05rem;margin-bottom:0.5rem;">
+              <a href="{{ exp.get_absolute_url }}">{{ exp.title }}</a>
+            </h3>
+            <p style="font-size:0.86rem;margin-bottom:0.85rem;">{{ exp.summary|truncatewords:24 }}</p>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <span class="badge badge-muted">⏳ {{ exp.rounds_count }} Rounds</span>
+              <span class="badge badge-muted">⚡ {{ exp.get_difficulty_display }}</span>
+              {% if exp.compensation_details %}
+                <span class="badge badge-primary">💰 {{ exp.compensation_details }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <span style="font-size:0.82rem;color:var(--text-muted);">By {{ exp.author.get_full_name|default:exp.author.username }}</span>
+            <a href="{{ exp.get_absolute_url }}" class="btn btn-secondary btn-sm">Read Full Rounds →</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Collaborative Projects & Teammate Finder Banner -->
+  <section style="margin-bottom: 4rem;">
+    <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%); border-color: var(--border-highlight); padding: 2.5rem;">
+      <div style="display:grid;grid-template-columns: 1.5fr 1fr; gap: 2rem; align-items: center;">
+        <div>
+          <span class="badge badge-emerald" style="margin-bottom:0.75rem;">TEAM COLLABORATION</span>
+          <h2 style="font-size:2.2rem;margin-bottom:1rem;">Build Capstones & Win Hackathons Together</h2>
+          <p style="margin-bottom:1.5rem;font-size:1.05rem;">
+            Looking for a React developer, a Django backend specialist, or an ML engineer for your MCA final project or hackathon? Connect with peers right here.
+          </p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <a href="{% url 'projects:project_create' %}" class="btn btn-primary">Post Your Project Idea</a>
+            <a href="{% url 'projects:project_list' %}?teammates=1" class="btn btn-secondary">Find Open Roles</a>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          {% for proj in showcase_projects %}
+            <div style="background:var(--bg-surface);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h4 style="font-size:0.95rem;"><a href="{{ proj.get_absolute_url }}">{{ proj.title }}</a></h4>
+                <span class="badge badge-cyan" style="font-size:0.7rem;">Teammates Wanted</span>
+              </div>
+              <p style="font-size:0.8rem;margin:0.3rem 0;">{{ proj.tagline }}</p>
+              <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);">
+                {{ proj.tech_stack }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Alumni Mentors -->
+  <section style="margin-bottom: 4rem;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;">
+      <div>
+        <span class="badge badge-cyan" style="margin-bottom:0.5rem;">1-ON-1 GUIDANCE</span>
+        <h2>Book 1-on-1 Sessions with Senior Mentors</h2>
+      </div>
+      <a href="{% url 'mentorship:mentor_list' %}" class="btn btn-outline btn-sm">View All Mentors →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for mentor in top_mentors %}
+        <div class="card" style="text-align:center;">
+          <img src="{{ mentor.user.get_avatar_url }}" alt="{{ mentor.user.username }}" class="avatar avatar-lg" style="margin: 0 auto 0.75rem; border-color:var(--primary);">
+          <h4 style="margin-bottom:0.2rem;">{{ mentor.user.get_full_name|default:mentor.user.username }}</h4>
+          <p style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-bottom:0.5rem;">{{ mentor.headline }}</p>
+          <p style="font-size:0.8rem;margin-bottom:1rem;">{{ mentor.about|truncatewords:14 }}</p>
+          <a href="{% url 'mentorship:book_session' mentor.user.id %}" class="btn btn-primary btn-sm" style="width:100%;">Book Session</a>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

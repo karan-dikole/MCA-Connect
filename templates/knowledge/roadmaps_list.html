@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Career Roadmaps - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <span class="badge badge-primary" style="margin-bottom:0.5rem;">CAREER ACCELERATORS</span>
+    <h1>Interactive Engineering Roadmaps</h1>
+    <p style="max-width: 600px; margin: 0 auto;">Structured, step-by-step milestones to help MCA students transition into high-paying engineering roles.</p>
+  </div>
+
+  <div class="grid-3">
+    {% for rm in roadmaps %}
+      <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">{{ rm.icon }}</div>
+          <h3 style="font-size:1.3rem; margin-bottom:0.5rem;">{{ rm.title }}</h3>
+          <span class="badge badge-cyan" style="margin-bottom:1rem;">Target: {{ rm.target_role }}</span>
+          <p style="font-size:0.88rem;">{{ rm.summary }}</p>
+        </div>
+
+        <div class="card-footer">
+          <span class="badge badge-muted">{{ rm.difficulty }}</span>
+          <a href="{% url 'knowledge:roadmap_detail' rm.slug %}" class="btn btn-primary btn-sm">View Roadmap →</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:3rem;">
+        <p>Roadmaps are being compiled.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

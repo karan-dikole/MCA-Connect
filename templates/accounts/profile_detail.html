@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - MCA Connect Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Profile Header Card -->
+  <div class="card" style="margin-bottom: 2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.5rem;">
+      <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
+        <img src="{{ profile_user.get_avatar_url }}" alt="{{ profile_user.username }}" class="avatar avatar-xl" style="border: 3px solid var(--primary);">
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <h1 style="font-size:1.9rem; margin:0;">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+            <span class="badge badge-primary">{{ profile_user.get_role_display }}</span>
+            {% if profile_user.is_verified_alumni %}
+              <span class="badge badge-emerald">Verified Alumni 🎓</span>
+            {% endif %}
+          </div>
+          <p style="font-size:1.05rem; margin:0.35rem 0 0.6rem; color:var(--text-secondary);">
+            {{ profile_user.headline|default:"MCA Enthusiast" }}
+          </p>
+          <div style="display:flex; gap:1.25rem; font-size:0.85rem; color:var(--text-muted); flex-wrap:wrap;">
+            {% if profile_user.company %}
+              <span>🏢 {{ profile_user.designation }} at <strong>{{ profile_user.company }}</strong></span>
+            {% endif %}
+            {% if profile_user.batch_year %}
+              <span>🎓 Batch of {{ profile_user.batch_year }}</span>
+            {% endif %}
+            <span>🏛️ {{ profile_user.college }}</span>
+            <span>⭐ {{ profile_user.reputation_points }} Reputation</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        {% if user == profile_user %}
+          <a href="{% url 'accounts:edit_profile' %}" class="btn btn-secondary btn-sm">Edit Profile</a>
+        {% endif %}
+        {% if profile_user.is_mentor_available and user != profile_user %}
+          <a href="{% url 'mentorship:book_session' profile_user.id %}" class="btn btn-primary btn-sm">Book 1-on-1 Session</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Bio & Social Links -->
+    {% if profile_user.bio %}
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); font-size: 0.95rem;">
+        {{ profile_user.bio|linebreaks }}
+      </div>
+    {% endif %}
+
+    <div style="display:flex; gap:1rem; margin-top:1.25rem; flex-wrap:wrap;">
+      {% if profile_user.github_url %}
+        <a href="{{ profile_user.github_url }}" target="_blank" class="btn btn-secondary btn-sm">🐙 GitHub</a>
+      {% endif %}
+      {% if profile_user.linkedin_url %}
+        <a href="{{ profile_user.linkedin_url }}" target="_blank" class="btn btn-secondary btn-sm">💼 LinkedIn</a>
+      {% endif %}
+      {% if profile_user.portfolio_url %}
+        <a href="{{ profile_user.portfolio_url }}" target="_blank" class="btn btn-secondary btn-sm">🌐 Portfolio</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid-main-side">
+    <!-- Main Column: Skills, Articles, Projects, Interviews -->
+    <div>
+      <!-- Skills Matrix -->
+      {% if profile_user.skills %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="margin-bottom:0.75rem;">🛠️ Technical Skills & Domains</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+            {% for skill in profile_user.get_skills_list %}
+              <span class="badge badge-cyan" style="font-size:0.85rem; padding:0.35rem 0.75rem;">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Authored Articles -->
+      {% if articles %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="margin-bottom:1rem;">📚 Published Knowledge Articles</h3>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            {% for article in articles %}
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border-color);">
+                <div>
+                  <a href="{{ article.get_absolute_url }}" style="font-weight:600;">{{ article.title }}</a>
+                  <div style="font-size:0.78rem; color:var(--text-muted);">{{ article.category.name }} • {{ article.created_at|date:"M d, Y" }}</div>
+                </div>
+                <span class="badge badge-muted">👍 {{ article.upvotes.count }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Shared Interview Experiences -->
+      {% if experiences %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="margin-bottom:1rem;">💼 Placement Experiences</h3>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            {% for exp in experiences %}
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border-color);">
+                <div>
+                  <a href="{{ exp.get_absolute_url }}" style="font-weight:600;">{{ exp.company.name }} - {{ exp.role_applied }}</a>
+                  <div style="font-size:0.78rem; color:var(--text-muted);">{{ exp.get_offer_status_display }} • {{ exp.created_at|date:"M d, Y" }}</div>
+                </div>
+                <span class="badge badge-primary">{{ exp.get_difficulty_display }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Showcased Projects -->
+      {% if projects %}
+        <div class="card">
+          <h3 style="margin-bottom:1rem;">🚀 Collaborative Projects</h3>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            {% for proj in projects %}
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border-color);">
+                <div>
+                  <a href="{{ proj.get_absolute_url }}" style="font-weight:600;">{{ proj.title }}</a>
+                  <div style="font-size:0.78rem; color:var(--text-muted);">{{ proj.tech_stack }}</div>
+                </div>
+                <a href="{{ proj.get_absolute_url }}" class="btn btn-secondary btn-sm">View Project</a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Badges & Activity Stream -->
+    <div>
+      <!-- Badges Card -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom:1rem;">🏆 Earned Badges</h3>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          {% for ub in badges %}
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:0.5rem; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <span style="font-size:1.8rem;">{{ ub.badge.icon }}</span>
+              <div>
+                <div style="font-weight:700; font-size:0.9rem;">{{ ub.badge.name }}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">{{ ub.badge.description }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <p style="font-size:0.85rem; color:var(--text-muted);">No badges earned yet. Contribute articles or answers to unlock badges!</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Recent Activities Card -->
+      <div class="card">
+        <h3 style="margin-bottom:1rem;">⚡ Recent Activities</h3>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          {% for act in activities %}
+            <div style="font-size:0.85rem;">
+              <div>{{ act.title }}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">{{ act.created_at|timesince }} ago</div>
+            </div>
+          {% empty %}
+            <p style="font-size:0.85rem; color:var(--text-muted);">No activity recorded yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

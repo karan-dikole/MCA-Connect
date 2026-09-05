@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Technical Q&A Community - MCA Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="badge badge-primary" style="margin-bottom:0.5rem;">COMMUNITY FORUM</span>
+      <h1>Technical Q&A & Code Problem Solving</h1>
+      <p>Ask programming bugs, debugging challenges, academic concepts, and earn reputation points.</p>
+    </div>
+    <a href="{% url 'qa:question_create' %}" class="btn btn-primary">+ Ask a Question</a>
+  </div>
+
+  <!-- Filter & Sort Bar -->
+  <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" name="q" placeholder="Search questions, errors, libraries..." value="{{ search_query }}" class="form-control" style="flex:2; min-width:200px;">
+      
+      <select name="status" class="form-control" style="flex:1; min-width:140px;">
+        <option value="">All Statuses</option>
+        <option value="solved" {% if selected_status == 'solved' %}selected{% endif %}>Solved Only ✅</option>
+        <option value="unsolved" {% if selected_status == 'unsolved' %}selected{% endif %}>Unsolved / Open</option>
+      </select>
+
+      <select name="sort" class="form-control" style="flex:1; min-width:140px;">
+        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+        <option value="votes" {% if selected_sort == 'votes' %}selected{% endif %}>Highest Votes</option>
+        <option value="bounty" {% if selected_sort == 'bounty' %}selected{% endif %}>Bounty Offered</option>
+        <option value="unanswered" {% if selected_sort == 'unanswered' %}selected{% endif %}>Unanswered</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{% url 'qa:question_list' %}" class="btn btn-secondary btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Questions List -->
+  <div class="card" style="padding: 1rem 1.5rem;">
+    {% for q in questions %}
+      <div style="display:flex; gap:1.25rem; padding:1.25rem 0; border-bottom:1px solid var(--border-color); align-items:flex-start;">
+        <!-- Stats summary box -->
+        <div style="display:flex; flex-direction:column; gap:0.35rem; text-align:center; min-width:80px;">
+          <span class="badge {% if q.upvotes_count > 0 %}badge-primary{% else %}badge-muted{% endif %}" style="font-size:0.8rem;">
+            👍 {{ q.upvotes_count }} votes
+          </span>
+          <span class="badge {% if q.is_solved %}badge-emerald{% elif q.answers_count > 0 %}badge-cyan{% else %}badge-muted{% endif %}" style="font-size:0.8rem;">
+            {% if q.is_solved %}✅ Solved{% else %}💬 {{ q.answers_count }} ans{% endif %}
+          </span>
+          {% if q.bounty_points > 0 %}
+            <span class="badge badge-amber" style="font-size:0.75rem;">💰 +{{ q.bounty_points }} pts</span>
+          {% endif %}
+        </div>
+
+        <!-- Question Content snippet -->
+        <div style="flex:1;">
+          <h3 style="font-size:1.15rem; margin-bottom:0.4rem;">
+            <a href="{{ q.get_absolute_url }}">{{ q.title }}</a>
+          </h3>
+          <p style="font-size:0.88rem; margin-bottom:0.6rem; color:var(--text-secondary);">
+            {{ q.content|truncatewords:28 }}
+          </p>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+              {% for tag in q.get_tags_list %}
+                <span class="tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+              <img src="{{ q.author.get_avatar_url }}" alt="{{ q.author.username }}" class="avatar" style="width:20px;height:20px;">
+              <a href="{% url 'accounts:profile' q.author.username %}">{{ q.author.get_full_name|default:q.author.username }}</a>
+              <span>asked {{ q.created_at|timesince }} ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div style="text-align:center; padding:3rem;">
+        <p>No questions found.</p>
+        <a href="{% url 'qa:question_create' %}" class="btn btn-primary btn-sm" style="margin-top:1rem;">Ask the First Question!</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
