@@ -13,6 +13,7 @@ urlpatterns = [
     path('qa/', include('apps.qa.urls')),
     path('mentorship/', include('apps.mentorship.urls')),
     path('ai-assistant/', include('apps.ai_assistant.urls')),
+    path('api/', include('mca_connect.api_urls')),
 ]
 
 if settings.DEBUG:
