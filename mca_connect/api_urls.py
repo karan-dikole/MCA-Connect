@@ -30,8 +30,9 @@ urlpatterns = [
     path('projects/', api_views.api_projects_list, name='api_projects'),
     path('projects/<int:pk>/', api_views.api_project_detail_actions, name='api_project_detail_actions'),
 
-    # Mentorship (Directory, Booking, My Sessions, Session Actions, Remove Profile)
+    # Mentorship (Directory, Booking, My Sessions, Session Actions, Create/Remove Profile)
     path('mentorship/mentors/', api_views.api_mentors_list, name='api_mentors'),
+    path('mentorship/profile/create/', api_views.api_mentorship_create_or_update_profile, name='api_mentorship_create_profile'),
     path('mentorship/profile/remove/', api_views.api_mentorship_remove_mentor_profile, name='api_mentorship_remove_mentor_profile'),
     path('mentorship/book/', api_views.api_mentorship_book_session, name='api_mentorship_book'),
     path('mentorship/my-sessions/', api_views.api_mentorship_my_sessions, name='api_mentorship_my_sessions'),

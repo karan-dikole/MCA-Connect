@@ -470,6 +470,7 @@ def api_interviews_list(request):
             'compensation_details': exp.compensation_details,
             'rounds_count': exp.rounds_count,
             'summary': exp.summary,
+            'rounds_breakdown': exp.rounds_breakdown,
             'questions_asked': exp.questions_asked,
             'tips_for_juniors': exp.tips_for_juniors,
             'author_id': exp.author.id if exp.author else None,
@@ -783,6 +784,68 @@ def api_qa_list(request):
         })
     return Response(data)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_mentorship_create_or_update_profile(request):
+    """Allows an eligible user to register/update as an alumni mentor."""
+    if not request.user.is_authenticated:
+        return Response({'error': 'Please sign in to register as a mentor.'}, status=401)
+    
+    company = request.data.get('company') or request.data.get('current_company', '').strip()
+    role = request.data.get('current_role', '').strip()
+    headline = request.data.get('headline', '').strip()
+    if not headline and (role or company):
+        headline = f"{role} at {company}".strip(' at ')
+    if not headline:
+        headline = 'MCA Mentor & Industry Guide'
+
+    expertise_areas = request.data.get('expertise_areas') or request.data.get('expertise_tags', '').strip()
+    about = request.data.get('about') or request.data.get('bio', '').strip()
+    if not about:
+        about = 'Passionate about helping MCA students excel in software engineering and career growth.'
+    years = int(request.data.get('years_of_experience', 2) or 2)
+    max_mentees = int(request.data.get('max_mentees', 3) or 3)
+    
+    if not expertise_areas:
+        expertise_areas = 'Full Stack, DSA, System Design'
+    
+    profile, _ = MentorProfile.objects.update_or_create(
+        user=request.user,
+        defaults={
+            'headline': headline,
+            'expertise_areas': expertise_areas,
+            'about': about,
+            'years_of_experience': years,
+            'max_mentees': max_mentees,
+            'preferred_meeting_tool': request.data.get('preferred_meeting_tool', 'Google Meet'),
+            'is_active': True,
+        }
+    )
+    u = request.user
+    if u.role == 'STUDENT':
+        u.role = 'ALUMNI'
+    u.is_mentor_available = True
+    u.headline = headline
+    if request.data.get('company'):
+        u.company = request.data.get('company')
+    u.save()
+    
+    return Response({
+        'success': True,
+        'message': 'Mentor profile activated successfully!',
+        'user': {
+            'id': u.id,
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'email': u.email,
+            'role': u.role,
+            'role_display': u.get_role_display(),
+            'headline': u.headline,
+            'reputation_points': u.reputation_points,
+            'avatar_url': u.get_avatar_url(),
+        }
+    })
+
 @api_view(['POST', 'DELETE'])
 @permission_classes([AllowAny])
 def api_question_detail_actions(request, pk):
@@ -793,8 +856,17 @@ def api_question_detail_actions(request, pk):
         q.delete()
         return Response({'success': True})
 
-    # Post Answer or Upvote
     action = request.data.get('action')
+
+    # Toggle Solved
+    if action == 'solve':
+        if not request.user.is_authenticated or (request.user != q.author and request.user.role not in ['ALUMNI', 'FACULTY', 'ADMIN']):
+            return Response({'error': 'Unauthorized to update solved status.'}, status=403)
+        q.is_solved = not q.is_solved
+        q.save(update_fields=['is_solved'])
+        return Response({'success': True, 'is_solved': q.is_solved})
+
+    # Post Answer
     if action == 'answer':
         if not request.user.is_authenticated:
             return Response({'error': 'Please sign in to answer.'}, status=401)

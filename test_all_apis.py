@@ -184,9 +184,9 @@ def run_tests():
     # 10. Test Mentorship Booking: Student Books Session
     booking_id = None
     try:
-        # Get mentor user id
         r_mentors = requests.get(f"{BASE_DJANGO}/api/mentorship/mentors/").json()
-        mentor_user_id = r_mentors[0]["user_id"]
+        rahul_mentor = [m for m in r_mentors if "Rahul" in m.get("name", "") or m.get("username") == "rahul_verma"][0]
+        mentor_user_id = rahul_mentor["user_id"]
 
         # Student books
         r_book = s_student.post(f"{BASE_DJANGO}/api/mentorship/book/", json={
