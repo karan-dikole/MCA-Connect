@@ -4,6 +4,12 @@ from . import api_views
 urlpatterns = [
     path('stats/', api_views.api_global_stats, name='api_stats'),
     
+    # Authentication
+    path('auth/me/', api_views.api_auth_me, name='api_auth_me'),
+    path('auth/login/', api_views.api_auth_login, name='api_auth_login'),
+    path('auth/register/', api_views.api_auth_register, name='api_auth_register'),
+    path('auth/logout/', api_views.api_auth_logout, name='api_auth_logout'),
+
     # AI Assistant
     path('ai/resume-matcher/', api_views.api_resume_matcher, name='api_resume_matcher'),
     path('ai/code-explainer/', api_views.api_code_explainer, name='api_code_explainer'),

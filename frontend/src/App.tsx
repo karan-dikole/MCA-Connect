@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navbar } from './components/Navbar'
 import { ResumeMatcher } from './components/ResumeMatcher'
 import { AILab } from './components/AILab'
@@ -8,16 +8,52 @@ import { ProjectsHub } from './components/ProjectsHub'
 import { MentorshipHub } from './components/MentorshipHub'
 import { QAHub } from './components/QAHub'
 import { HeroStats } from './components/HeroStats'
+import { AuthModal } from './components/AuthModal'
 import { ArrowUpRight, Code } from 'lucide-react'
 
 export function App() {
   const [activeTab, setActiveTab] = useState('ai-resume')
+  const [user, setUser] = useState<any>(null)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+
+  useEffect(() => {
+    // Check initial auth state
+    fetch('/api/auth/me/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setUser(data.user)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  const handleOpenAuth = (mode: 'login' | 'register') => {
+    setAuthMode(mode)
+    setAuthModalOpen(true)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout/', { method: 'POST' })
+      setUser(null)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-12">
       <div>
-        {/* Navigation Bar */}
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* Navigation Bar with Auth Integration */}
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          user={user}
+          onOpenAuth={handleOpenAuth}
+          onLogout={handleLogout}
+        />
 
         {/* Global Statistics Strip */}
         <HeroStats />
@@ -33,6 +69,14 @@ export function App() {
           {activeTab === 'qa' && <QAHub />}
         </main>
       </div>
+
+      {/* Modern Login & Registration Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authMode}
+        onAuthSuccess={(loggedInUser) => setUser(loggedInUser)}
+      />
 
       {/* Modern Footer */}
       <footer className="mt-16 border-t border-slate-200/80 pt-8 max-w-7xl mx-auto px-4 w-full">

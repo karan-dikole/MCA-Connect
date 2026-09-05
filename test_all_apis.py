@@ -118,10 +118,32 @@ def run_tests():
     try:
         r = requests.get(f"{BASE_VITE}/api/stats/")
         assert r.status_code == 200
-        print(f"[PASS] [9/9] Vite proxy -> Django (/api/stats/ via {BASE_VITE}) passed!")
+        print(f"[PASS] [9/10] Vite proxy -> Django (/api/stats/ via {BASE_VITE}) passed!")
         passed += 1
     except Exception as e:
-        print(f"[FAIL] [9/9] Vite proxy test failed: {e}")
+        print(f"[FAIL] [9/10] Vite proxy test failed: {e}")
+        failed += 1
+
+    # 10. Test Authentication APIs
+    try:
+        s = requests.Session()
+        # Me when guest
+        r_me = s.get(f"{BASE_DJANGO}/api/auth/me/")
+        assert r_me.status_code == 200 and r_me.json()["authenticated"] == False
+        # Login
+        r_login = s.post(f"{BASE_DJANGO}/api/auth/login/", json={"username": "ananya_roy", "password": "pass1234"})
+        assert r_login.status_code == 200 and r_login.json()["success"] == True
+        # Me when logged in
+        r_me_auth = s.get(f"{BASE_DJANGO}/api/auth/me/")
+        assert r_me_auth.status_code == 200 and r_me_auth.json()["authenticated"] == True
+        # Logout
+        r_logout = s.post(f"{BASE_DJANGO}/api/auth/logout/")
+        assert r_logout.status_code == 200 and r_logout.json()["success"] == True
+        print("[PASS] [10/10] /api/auth/ (login, me, logout session lifecycle) passed!")
+        passed += 1
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        print(f"[FAIL] [10/10] /api/auth/ failed: {e}")
         failed += 1
 
     print(f"\n==========================================")

@@ -1,6 +1,8 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.auth import authenticate, login, logout
+from django.db import IntegrityError
 from apps.knowledge.models import Article, Category, Roadmap
 from apps.interviews.models import InterviewExperience
 from apps.projects.models import Project
@@ -8,6 +10,129 @@ from apps.mentorship.models import MentorProfile
 from apps.qa.models import Question
 from apps.accounts.models import User
 from apps.ai_assistant.services import AIAssistantService
+
+# --- AUTHENTICATION API ---
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_auth_me(request):
+    """Returns the currently authenticated user profile or guest status."""
+    if not request.user.is_authenticated:
+        return Response({'authenticated': False, 'user': None})
+    
+    u = request.user
+    return Response({
+        'authenticated': True,
+        'user': {
+            'id': u.id,
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'email': u.email,
+            'role': u.role,
+            'role_display': u.get_role_display(),
+            'headline': u.headline,
+            'college': u.college,
+            'reputation_points': u.reputation_points,
+            'skills': u.get_skills_list(),
+            'avatar_url': u.get_avatar_url(),
+        }
+    })
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def api_auth_login(request):
+    """Authenticates a user by username/password."""
+    username = request.data.get('username', '').strip()
+    password = request.data.get('password', '').strip()
+
+    if not username or not password:
+        return Response({'error': 'Please provide both username and password.'}, status=400)
+
+    # Support login with either username or email
+    user = authenticate(request, username=username, password=password)
+    if not user:
+        try:
+            u_obj = User.objects.get(email=username)
+            user = authenticate(request, username=u_obj.username, password=password)
+        except User.DoesNotExist:
+            pass
+
+    if user is not None:
+        login(request, user)
+        return Response({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'name': user.get_full_name() or user.username,
+                'email': user.email,
+                'role': user.role,
+                'role_display': user.get_role_display(),
+                'headline': user.headline,
+                'reputation_points': user.reputation_points,
+                'avatar_url': user.get_avatar_url(),
+            }
+        })
+    return Response({'error': 'Invalid username or password.'}, status=401)
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def api_auth_register(request):
+    """Registers a new MCA student or alumni user."""
+    username = request.data.get('username', '').strip()
+    email = request.data.get('email', '').strip()
+    password = request.data.get('password', '').strip()
+    first_name = request.data.get('first_name', '').strip()
+    last_name = request.data.get('last_name', '').strip()
+    role = request.data.get('role', 'STUDENT')
+    college = request.data.get('college', 'MCA Department')
+
+    if not username or not password or not email:
+        return Response({'error': 'Username, email, and password are required.'}, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Username already taken.'}, status=400)
+    if User.objects.filter(email=email).exists():
+        return Response({'error': 'Email is already registered.'}, status=400)
+
+    try:
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            role=role,
+            college=college,
+            reputation_points=50,
+        )
+        login(request, user)
+        return Response({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'name': user.get_full_name() or user.username,
+                'email': user.email,
+                'role': user.role,
+                'role_display': user.get_role_display(),
+                'headline': user.headline,
+                'reputation_points': user.reputation_points,
+                'avatar_url': user.get_avatar_url(),
+            }
+        })
+    except Exception as e:
+        return Response({'error': f'Failed to create account: {str(e)}'}, status=500)
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def api_auth_logout(request):
+    """Logs out the user session."""
+    logout(request)
+    return Response({'success': True})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
