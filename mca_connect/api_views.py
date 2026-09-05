@@ -816,7 +816,6 @@ def api_mentorship_create_or_update_profile(request):
             'expertise_areas': expertise_areas,
             'about': about,
             'years_of_experience': years,
-            'max_mentees': max_mentees,
             'preferred_meeting_tool': request.data.get('preferred_meeting_tool', 'Google Meet'),
             'is_active': True,
         }

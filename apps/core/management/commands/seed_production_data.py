@@ -55,7 +55,6 @@ class Command(BaseCommand):
                 'expertise_areas': 'Distributed Systems, System Design, Python, Azure, DSA',
                 'about': 'MCA Senior (Batch of 2023) passionate about helping juniors crack tier-1 product tech interviews and scale high-throughput architectures.',
                 'years_of_experience': 3,
-                'max_mentees': 5,
                 'offers_mock_interview': True,
                 'offers_resume_review': True,
                 'offers_career_guidance': True,
