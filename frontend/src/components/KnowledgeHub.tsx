@@ -1,54 +1,87 @@
 import React, { useEffect, useState } from 'react'
-import { BookOpen, Eye, Clock } from 'lucide-react'
+import { BookOpen, Eye, Clock, Plus } from 'lucide-react'
+import { PublishArticleModal } from './modals/PublishArticleModal'
 
-export const KnowledgeHub: React.FC = () => {
+interface KnowledgeHubProps {
+  user: any
+  onOpenAuth: (mode: 'login' | 'register') => void
+}
+
+export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ user, onOpenAuth }) => {
   const [articles, setArticles] = useState<any[]>([])
   const [roadmaps, setRoadmaps] = useState<any[]>([])
   const [activeView, setActiveView] = useState<'articles' | 'roadmaps'>('articles')
   const [loading, setLoading] = useState(true)
+  const [publishModalOpen, setPublishModalOpen] = useState(false)
+
+  const fetchData = async () => {
+    try {
+      const [artRes, roadRes] = await Promise.all([
+        fetch('/api/knowledge/articles/'),
+        fetch('/api/knowledge/roadmaps/')
+      ])
+      const artData = await artRes.json()
+      const roadData = await roadRes.json()
+      setArticles(artData)
+      setRoadmaps(roadData)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [artRes, roadRes] = await Promise.all([
-          fetch('/api/knowledge/articles/'),
-          fetch('/api/knowledge/roadmaps/')
-        ])
-        const artData = await artRes.json()
-        const roadData = await roadRes.json()
-        setArticles(artData)
-        setRoadmaps(roadData)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchData()
   }, [])
+
+  const isMentorRole = user && (user.role === 'ALUMNI' || user.role === 'FACULTY' || user.role === 'ADMIN')
+
+  const handlePublishClick = () => {
+    if (!user) {
+      onOpenAuth('login')
+      return
+    }
+    setPublishModalOpen(true)
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold">
-          <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Curated Tech Knowledge Base</span>
+      {/* Top Header with Role Action */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto border-b border-slate-100 pb-6">
+        <div className="space-y-1 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Curated Tech Knowledge Base</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            MCA Curriculum & <span className="gradient-text">Career Roadmaps</span>
+          </h1>
+          <p className="text-xs text-slate-500">
+            High-yield semester notes, system design roadmaps, and deep-dives written by top MCA alumni.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
-          MCA Curriculum & <span className="gradient-text">Career Roadmaps</span>
-        </h1>
-        <p className="text-sm text-slate-500">
-          High-yield semester notes, system design roadmaps, and software engineering deep-dives written by top MCA alumni.
-        </p>
 
-        {/* View Switcher */}
-        <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 mt-2">
+        {/* Publish Action (Alumni/Mentor privilege) */}
+        {isMentorRole && (
+          <button
+            onClick={handlePublishClick}
+            className="gradient-btn px-5 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Publish Study Guide</span>
+          </button>
+        )}
+      </div>
+
+      {/* View Switcher */}
+      <div className="flex justify-center">
+        <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
           <button
             onClick={() => setActiveView('articles')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeView === 'articles' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600'
+              activeView === 'articles' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             📚 Study Guides & Notes ({articles.length})
@@ -56,7 +89,7 @@ export const KnowledgeHub: React.FC = () => {
           <button
             onClick={() => setActiveView('roadmaps')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeView === 'roadmaps' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600'
+              activeView === 'roadmaps' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             🗺️ Step-by-Step Roadmaps ({roadmaps.length})
@@ -89,7 +122,14 @@ export const KnowledgeHub: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px] font-medium">By {art.author_name}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400 text-[11px] font-medium">By <span className="font-bold text-slate-700">{art.author_name}</span></span>
+                  {art.author_role && (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-800">
+                      {art.author_role}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
                   <Eye className="w-3 h-3" /> {art.views_count} views
                 </span>
@@ -115,6 +155,13 @@ export const KnowledgeHub: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Publish Modal */}
+      <PublishArticleModal
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        onSuccess={fetchData}
+      />
 
     </div>
   )

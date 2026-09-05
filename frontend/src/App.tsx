@@ -18,7 +18,6 @@ export function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
 
   useEffect(() => {
-    // Check initial auth state
     fetch('/api/auth/me/')
       .then(res => res.json())
       .then(data => {
@@ -62,11 +61,11 @@ export function App() {
         <main className="max-w-7xl mx-auto px-4 py-4">
           {activeTab === 'ai-resume' && <ResumeMatcher />}
           {activeTab === 'ai-tools' && <AILab />}
-          {activeTab === 'knowledge' && <KnowledgeHub />}
-          {activeTab === 'interviews' && <InterviewHub />}
-          {activeTab === 'projects' && <ProjectsHub />}
-          {activeTab === 'mentorship' && <MentorshipHub />}
-          {activeTab === 'qa' && <QAHub />}
+          {activeTab === 'knowledge' && <KnowledgeHub user={user} onOpenAuth={handleOpenAuth} />}
+          {activeTab === 'interviews' && <InterviewHub user={user} onOpenAuth={handleOpenAuth} />}
+          {activeTab === 'projects' && <ProjectsHub user={user} onOpenAuth={handleOpenAuth} />}
+          {activeTab === 'mentorship' && <MentorshipHub user={user} onOpenAuth={handleOpenAuth} />}
+          {activeTab === 'qa' && <QAHub user={user} onOpenAuth={handleOpenAuth} />}
         </main>
       </div>
 

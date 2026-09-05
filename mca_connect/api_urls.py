@@ -19,15 +19,21 @@ urlpatterns = [
     path('knowledge/articles/', api_views.api_articles_list, name='api_articles'),
     path('knowledge/roadmaps/', api_views.api_roadmaps_list, name='api_roadmaps'),
 
-    # Interviews
+    # Interviews (List, Share, Upvote)
     path('interviews/', api_views.api_interviews_list, name='api_interviews'),
+    path('interviews/<int:pk>/upvote/', api_views.api_interview_upvote, name='api_interview_upvote'),
 
-    # Projects
+    # Projects (List, Showcase, Like, Delete)
     path('projects/', api_views.api_projects_list, name='api_projects'),
+    path('projects/<int:pk>/', api_views.api_project_detail_actions, name='api_project_detail_actions'),
 
-    # Mentorship
+    # Mentorship (Directory, Booking, My Sessions, Update Status)
     path('mentorship/mentors/', api_views.api_mentors_list, name='api_mentors'),
+    path('mentorship/book/', api_views.api_mentorship_book_session, name='api_mentorship_book'),
+    path('mentorship/my-sessions/', api_views.api_mentorship_my_sessions, name='api_mentorship_my_sessions'),
+    path('mentorship/sessions/<int:pk>/update-status/', api_views.api_mentorship_session_update_status, name='api_mentorship_session_update_status'),
 
-    # Q&A
+    # Q&A (List, Ask, Answer, Upvote, Delete)
     path('qa/questions/', api_views.api_qa_list, name='api_qa'),
+    path('qa/questions/<int:pk>/', api_views.api_question_detail_actions, name='api_question_detail_actions'),
 ]
