@@ -3,6 +3,7 @@ from . import api_views
 
 urlpatterns = [
     path('stats/', api_views.api_global_stats, name='api_stats'),
+    path('search/', api_views.api_global_search, name='api_global_search'),
     
     # Authentication
     path('auth/me/', api_views.api_auth_me, name='api_auth_me'),

@@ -16,10 +16,22 @@ def run_tests():
         assert r.status_code == 200, f"Expected 200, got {r.status_code}"
         data = r.json()
         assert "articles_count" in data and "mentors_count" in data
-        print("[PASS] [1/14] /api/stats/ returned valid schema:", data)
+        print("[PASS] [1/16] /api/stats/ returned valid schema:", data)
         passed += 1
     except Exception as e:
-        print("[FAIL] [1/14] /api/stats/ failed:", e)
+        print("[FAIL] [1/16] /api/stats/ failed:", e)
+        failed += 1
+
+    # 2. Test Global Search API
+    try:
+        r_search = requests.get(f"{BASE_DJANGO}/api/search/?q=Django")
+        assert r_search.status_code == 200
+        data_s = r_search.json()
+        assert "total_results" in data_s and "articles" in data_s and "questions" in data_s
+        print(f"[PASS] [2/16] /api/search/?q=Django passed. Total results found: {data_s['total_results']}")
+        passed += 1
+    except Exception as e:
+        print("[FAIL] [2/16] /api/search/ failed:", e)
         failed += 1
 
     # 2. Test Resume Matcher

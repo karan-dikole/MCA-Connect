@@ -12,10 +12,100 @@ from apps.mentorship.models import MentorProfile, MentorshipBooking
 from apps.qa.models import Question, Answer
 from apps.accounts.models import User
 from apps.ai_assistant.services import AIAssistantService
+from django.db.models import Q
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return  # Bypass CSRF enforcement for REST endpoints
+
+# --- GLOBAL UNIFIED SEARCH API ---
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_global_search(request):
+    """Unified search across study guides, Q&A, projects, placement logs, and mentors."""
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return Response({
+            'query': '',
+            'total_results': 0,
+            'articles': [],
+            'questions': [],
+            'projects': [],
+            'interviews': [],
+            'mentors': [],
+        })
+
+    # 1. Articles
+    articles = Article.objects.filter(
+        Q(title__icontains=q) | Q(summary__icontains=q) | Q(tags__icontains=q)
+    ).select_related('author', 'category')[:6]
+    articles_data = [{
+        'id': a.id,
+        'title': a.title,
+        'summary': a.summary[:100],
+        'category': a.category.name if a.category else 'General',
+        'tab': 'knowledge',
+    } for a in articles]
+
+    # 2. Q&A Questions
+    questions = Question.objects.filter(
+        Q(title__icontains=q) | Q(content__icontains=q) | Q(tags__icontains=q)
+    ).select_related('author')[:6]
+    questions_data = [{
+        'id': qu.id,
+        'title': qu.title,
+        'content': qu.content[:100],
+        'language': qu.get_language_display(),
+        'tab': 'qa',
+    } for qu in questions]
+
+    # 3. Projects
+    projects = Project.objects.filter(
+        Q(title__icontains=q) | Q(tagline__icontains=q) | Q(tech_stack__icontains=q)
+    ).select_related('author')[:6]
+    projects_data = [{
+        'id': p.id,
+        'title': p.title,
+        'tagline': p.tagline,
+        'tech_stack': p.tech_stack,
+        'tab': 'projects',
+    } for p in projects]
+
+    # 4. Interviews
+    interviews = InterviewExperience.objects.filter(
+        Q(company__name__icontains=q) | Q(role_applied__icontains=q) | Q(summary__icontains=q)
+    ).select_related('company', 'author')[:6]
+    interviews_data = [{
+        'id': exp.id,
+        'title': f"{exp.company.name if exp.company else 'Tech Firm'} - {exp.role_applied}",
+        'summary': exp.summary[:100],
+        'tab': 'interviews',
+    } for exp in interviews]
+
+    # 5. Mentors
+    mentors = MentorProfile.objects.filter(
+        Q(headline__icontains=q) | Q(expertise_areas__icontains=q) |
+        Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q) | Q(user__username__icontains=q)
+    ).select_related('user')[:6]
+    mentors_data = [{
+        'id': m.id,
+        'name': m.user.get_full_name() or m.user.username,
+        'headline': m.headline,
+        'tab': 'mentorship',
+    } for m in mentors]
+
+    total = len(articles_data) + len(questions_data) + len(projects_data) + len(interviews_data) + len(mentors_data)
+
+    return Response({
+        'query': q,
+        'total_results': total,
+        'articles': articles_data,
+        'questions': questions_data,
+        'projects': projects_data,
+        'interviews': interviews_data,
+        'mentors': mentors_data,
+    })
 
 # --- AUTHENTICATION API ---
 
