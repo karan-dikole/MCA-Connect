@@ -42,16 +42,16 @@ export const InterviewHub: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-sm font-extrabold text-slate-900">{exp.company_name}</h3>
-                      <p className="text-[11px] text-slate-400 font-medium">{exp.role}</p>
+                      <p className="text-[11px] text-slate-400 font-medium">{exp.role_applied} ({exp.batch_year})</p>
                     </div>
                   </div>
-                  {exp.outcome === 'Offered' ? (
+                  {exp.offer_status.includes('Offer') || exp.offer_status.includes('Selected') ? (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Selected
+                      <CheckCircle className="w-3 h-3" /> {exp.offer_status}
                     </span>
                   ) : (
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                      {exp.outcome}
+                      {exp.offer_status}
                     </span>
                   )}
                 </div>
@@ -63,9 +63,9 @@ export const InterviewHub: React.FC = () => {
                   <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[10px]">
                     {exp.difficulty}
                   </span>
-                  {exp.package_lpa && (
+                  {exp.compensation_details && (
                     <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[10px]">
-                      💰 {exp.package_lpa} LPA
+                      💰 {exp.compensation_details}
                     </span>
                   )}
                 </div>
@@ -76,7 +76,7 @@ export const InterviewHub: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
-                <span>Shared by {exp.student_name}</span>
+                <span>Shared by {exp.author_name}</span>
                 <span>{exp.created_at}</span>
               </div>
             </div>

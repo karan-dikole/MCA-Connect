@@ -76,7 +76,7 @@ export const KnowledgeHub: React.FC = () => {
                     {art.category}
                   </span>
                   <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {art.read_time_minutes} min read
+                    <Clock className="w-3 h-3" /> {art.read_time}
                   </span>
                 </div>
 
@@ -106,11 +106,11 @@ export const KnowledgeHub: React.FC = () => {
                   {r.difficulty}
                 </span>
                 <span className="text-xs font-bold text-slate-400">
-                  ⏱️ {r.estimated_weeks} Weeks
+                  🎯 {r.target_role}
                 </span>
               </div>
-              <h3 className="text-lg font-black text-slate-900">{r.title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">{r.description}</p>
+              <h3 className="text-lg font-black text-slate-900">{r.icon} {r.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">{r.summary}</p>
             </div>
           ))}
         </div>

@@ -46,9 +46,12 @@ export const QAHub: React.FC = () => {
                   </h3>
                 </div>
 
-                <p className="text-xs text-slate-500 line-clamp-2">{q.body}</p>
+                <p className="text-xs text-slate-500 line-clamp-2">{q.content}</p>
 
                 <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700">
+                    {q.language}
+                  </span>
                   {q.tags.map((t: string, i: number) => (
                     <span key={i} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
                       #{t}

@@ -45,7 +45,7 @@ def api_resume_matcher(request):
             'slug': a.slug,
             'category': a.category.name if a.category else 'General',
             'summary': a.summary,
-            'read_time_minutes': a.read_time_minutes,
+            'read_time': a.estimate_read_time(),
         })
 
     # Group skills by domain for rich categorized matrix
@@ -129,13 +129,13 @@ def api_articles_list(request):
             'title': a.title,
             'slug': a.slug,
             'summary': a.summary,
-            'content': a.content[:300] + '...',
             'category': a.category.name if a.category else 'General',
             'category_slug': a.category.slug if a.category else '',
             'author_name': a.author.get_full_name() or a.author.username if a.author else 'Community',
-            'read_time_minutes': a.read_time_minutes,
-            'tags': [t.strip() for t in a.tags.split(',')] if a.tags else [],
+            'read_time': a.estimate_read_time(),
+            'tags': a.get_tags_list(),
             'views_count': a.views_count,
+            'difficulty': a.get_difficulty_display(),
             'created_at': a.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)
@@ -151,9 +151,11 @@ def api_roadmaps_list(request):
             'id': r.id,
             'title': r.title,
             'slug': r.slug,
-            'description': r.description,
+            'target_role': r.target_role,
+            'icon': r.icon,
+            'summary': r.summary,
             'difficulty': r.difficulty,
-            'estimated_weeks': r.estimated_weeks,
+            'created_at': r.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)
 
@@ -164,22 +166,23 @@ def api_roadmaps_list(request):
 def api_interviews_list(request):
     """Lists company interview experiences."""
     company = request.GET.get('company')
-    experiences = InterviewExperience.objects.select_related('student').all()
+    experiences = InterviewExperience.objects.select_related('author', 'company').all()
     if company:
-        experiences = experiences.filter(company_name__icontains=company)
+        experiences = experiences.filter(company__name__icontains=company)
 
     data = []
     for exp in experiences[:30]:
         data.append({
             'id': exp.id,
-            'company_name': exp.company_name,
-            'role': exp.role,
-            'package_lpa': str(exp.package_lpa) if exp.package_lpa else None,
-            'difficulty': exp.difficulty,
-            'outcome': exp.outcome,
+            'company_name': exp.company.name if exp.company else 'Tech Firm',
+            'role_applied': exp.role_applied,
+            'batch_year': exp.batch_year,
+            'offer_status': exp.get_offer_status_display(),
+            'difficulty': exp.get_difficulty_display(),
+            'compensation_details': exp.compensation_details,
             'rounds_count': exp.rounds_count,
             'summary': exp.summary,
-            'student_name': exp.student.get_full_name() or exp.student.username if exp.student else 'Anonymous',
+            'author_name': exp.author.get_full_name() or exp.author.username if exp.author else 'Senior Alum',
             'created_at': exp.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)
@@ -190,20 +193,23 @@ def api_interviews_list(request):
 @permission_classes([AllowAny])
 def api_projects_list(request):
     """Lists student & open source projects."""
-    projects = Project.objects.select_related('creator').all()
+    projects = Project.objects.select_related('author').prefetch_related('likes').all()
     data = []
     for p in projects[:30]:
         data.append({
             'id': p.id,
             'title': p.title,
             'slug': p.slug,
-            'short_description': p.short_description,
-            'tech_stack': [t.strip() for t in p.tech_stack.split(',')] if p.tech_stack else [],
+            'tagline': p.tagline,
+            'description': p.description[:200] + '...',
+            'tech_stack': p.get_tech_list(),
+            'category': p.get_category_display(),
             'github_url': p.github_url,
             'live_demo_url': p.live_demo_url,
-            'creator_name': p.creator.get_full_name() or p.creator.username if p.creator else 'MCA Scholar',
-            'likes_count': p.likes_count,
-            'status': p.status,
+            'author_name': p.author.get_full_name() or p.author.username if p.author else 'MCA Scholar',
+            'likes_count': p.likes.count(),
+            'is_looking_for_teammates': p.is_looking_for_teammates,
+            'roles_needed': p.roles_needed,
             'created_at': p.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)
@@ -220,13 +226,14 @@ def api_mentors_list(request):
         data.append({
             'id': m.id,
             'name': m.user.get_full_name() or m.user.username,
-            'current_role': m.current_role,
-            'company': m.company,
-            'bio': m.bio,
-            'expertise_areas': [e.strip() for e in m.expertise_areas.split(',')] if m.expertise_areas else [],
-            'rating': float(m.rating),
-            'sessions_completed': m.sessions_completed,
-            'avatar_url': m.user.get_avatar_url() if hasattr(m.user, 'get_avatar_url') else '',
+            'headline': m.headline,
+            'expertise_areas': m.get_expertise_list(),
+            'years_of_experience': m.years_of_experience,
+            'about': m.about,
+            'offers_resume_review': m.offers_resume_review,
+            'offers_mock_interview': m.offers_mock_interview,
+            'offers_career_guidance': m.offers_career_guidance,
+            'preferred_meeting_tool': m.preferred_meeting_tool,
         })
     return Response(data)
 
@@ -236,19 +243,20 @@ def api_mentors_list(request):
 @permission_classes([AllowAny])
 def api_qa_list(request):
     """Lists questions and discussion threads."""
-    questions = Question.objects.select_related('author').all()
+    questions = Question.objects.select_related('author').prefetch_related('upvotes', 'answers').all()
     data = []
     for q in questions[:30]:
         data.append({
             'id': q.id,
             'title': q.title,
             'slug': q.slug,
-            'body': q.body[:200] + '...',
+            'content': q.content[:200] + '...',
             'author_name': q.author.get_full_name() or q.author.username if q.author else 'Member',
-            'upvotes_count': q.upvotes_count,
-            'answers_count': q.answers_count,
+            'upvotes_count': q.upvotes.count(),
+            'answers_count': q.answers.count() if hasattr(q, 'answers') else 0,
             'is_solved': q.is_solved,
-            'tags': [t.strip() for t in q.tags.split(',')] if q.tags else [],
+            'language': q.get_language_display(),
+            'tags': q.get_tags_list(),
             'created_at': q.created_at.strftime('%b %d, %Y'),
         })
     return Response(data)

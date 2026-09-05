@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Users, Star, Calendar } from 'lucide-react'
+import { Users, Calendar, Award } from 'lucide-react'
 
 export const MentorshipHub: React.FC = () => {
   const [mentors, setMentors] = useState<any[]>([])
@@ -42,21 +42,19 @@ export const MentorshipHub: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-sm font-extrabold text-slate-900">{m.name}</h3>
-                      <p className="text-[11px] text-indigo-600 font-bold">{m.current_role} @ {m.company}</p>
+                      <p className="text-[11px] text-indigo-600 font-bold">{m.headline}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 text-xs bg-slate-50 p-2.5 rounded-xl">
-                  <div className="flex items-center gap-1 font-bold text-amber-600">
-                    <Star className="w-3.5 h-3.5 fill-amber-500" />
-                    <span>{m.rating}</span>
+                  <div className="flex items-center gap-1 font-bold text-indigo-700">
+                    <Award className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>{m.years_of_experience}+ Years Experience</span>
                   </div>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-slate-500 font-medium">{m.sessions_completed} sessions</span>
                 </div>
 
-                <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{m.bio}</p>
+                <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{m.about}</p>
 
                 {/* Expertise */}
                 <div className="flex flex-wrap gap-1">
@@ -70,7 +68,7 @@ export const MentorshipHub: React.FC = () => {
 
               <div className="pt-3 border-t border-slate-100">
                 <button
-                  onClick={() => alert(`Booking request sent to mentor ${m.name}! They will confirm your session time.`)}
+                  onClick={() => alert(`Booking request sent to mentor ${m.name}! They will confirm your ${m.preferred_meeting_tool} session.`)}
                   className="w-full gradient-btn py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2"
                 >
                   <Calendar className="w-3.5 h-3.5" />

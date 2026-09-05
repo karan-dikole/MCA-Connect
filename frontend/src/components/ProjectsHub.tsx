@@ -37,7 +37,7 @@ export const ProjectsHub: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 uppercase">
-                    {proj.status}
+                    {proj.category}
                   </span>
                   <div className="flex items-center gap-1 text-xs text-rose-500 font-bold">
                     <Heart className="w-3.5 h-3.5 fill-rose-500" />
@@ -46,7 +46,7 @@ export const ProjectsHub: React.FC = () => {
                 </div>
 
                 <h3 className="text-base font-extrabold text-slate-900">{proj.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{proj.short_description}</p>
+                <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">{proj.tagline || proj.description}</p>
 
                 {/* Tech Stack */}
                 <div className="flex flex-wrap gap-1.5 pt-2">
@@ -59,7 +59,7 @@ export const ProjectsHub: React.FC = () => {
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">By {proj.creator_name}</span>
+                <span className="text-[11px] text-slate-400">By {proj.author_name}</span>
                 <div className="flex items-center gap-2">
                   {proj.github_url && (
                     <a href={proj.github_url} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">
